@@ -1,0 +1,9 @@
+# MongoDB Atlas Connection URI
+MONGODB_URI = ""
+
+# MongoDB Database and Collection Names
+DATABASE_NAME= "vectorDb"
+COLLECTION_NAME="vectorCollection"
+
+# OpenAI API Key
+OPENAI_API_KEY="sk-proj-xxxxxx"
