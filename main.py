@@ -156,10 +156,18 @@ def celebration():
         animation_length=1,
     )
 
+def display_results():
+    st.header("Results")
+    for phase_name, phase_results in st.session_state.get('results', {}).items():
+        st.subheader(f"Results for {phase_name}")
+        for result in phase_results:
+            st.markdown(result)
 
 def main():
     if 'CURRENT_PHASE' not in st.session_state:
         st.session_state['CURRENT_PHASE'] = 0
+    if 'results' not in st.session_state:
+        st.session_state['results'] = {}
 
     st.title(APP_TITLE)
     st.markdown(APP_INTRO)
@@ -182,6 +190,7 @@ def main():
 
     while i <= st.session_state['CURRENT_PHASE']:
         submit_button = False
+        next_phase_button = False
         skip_button = False
         final_phase_name = list(PHASES.keys())[-1]
         final_key = f"{final_phase_name}_ai_response"
@@ -190,7 +199,7 @@ def main():
         PHASE_DICT = PHASES[PHASE_NAME]
         fields = PHASE_DICT["fields"]
 
-        st.write(f"#### Phase {i+1}: {PHASE_DICT['name']}")
+        st.write(f"#### Phase {i + 1}: {PHASE_DICT['name']}")
 
         build_field(PHASE_NAME, fields)
 
@@ -206,12 +215,14 @@ def main():
         if key not in st.session_state:
             st.session_state[key] = False
         if st.session_state[key] != True and final_key not in st.session_state:
-            with st.container(border=False):
-                col1, col2 = st.columns(2)
+            with st.container():
+                col1, col2, col3 = st.columns(3)
                 with col1:
                     submit_button = st.button(label=PHASE_DICT.get("button_label", "Submit"), type="primary",
                                               key="submit " + str(i))
                 with col2:
+                    next_phase_button = st.button(label="Go to Next Phase", key="next_phase " + str(i))
+                with col3:
                     if PHASE_DICT.get("allow_skip", False):
                         skip_button = st.button(label="Skip Question", key="skip " + str(i))
 
@@ -242,8 +253,25 @@ def main():
                                         **AI Feedback:** {evaluation}\n
                                         **Score:** {score}
                                         """
-                    st.success(feedback_message)
+                    st.markdown(feedback_message)
+                    # Store feedback message in session state for later display
+                    if PHASE_NAME not in st.session_state['results']:
+                        st.session_state['results'][PHASE_NAME] = []
+                    st.session_state['results'][PHASE_NAME].append(feedback_message)
+                else:
+                    feedback_message = f"""
+                                        **Your Response:** {user_response}\n
+                                        """
+                    st.markdown(feedback_message)
 
+                    # Store feedback message in session state for later display
+                    if PHASE_NAME not in st.session_state['results']:
+                        st.session_state['results'][PHASE_NAME] = []
+                    st.session_state['results'][PHASE_NAME].append(feedback_message)
+
+
+
+        if next_phase_button:
             if check_scores(PHASE_NAME):
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                 st.rerun()
@@ -254,14 +282,12 @@ def main():
             skip_phase(PHASE_NAME)
             st.rerun()
 
-
         if final_key in st.session_state and i == st.session_state['CURRENT_PHASE']:
             st.success(COMPLETION_MESSAGE)
             if COMPLETION_CELEBRATION:
                 celebration()
 
         i = min(i + 1, len(PHASES))
-
 
 if __name__ == "__main__":
     main()
