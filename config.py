@@ -96,17 +96,13 @@ PHASES = {
         "system_instructions": "Assess the user's understanding of the data collection process and analysis methods. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods.",
         "user_instructions": "The data was collected as follows: {data_collection}. The analysis methods used were: {analysis_method}",
         "scored_phase": True,
-        "minimum_score": 3,
+        "minimum_score": 2,
         "rubric": """
-            1. Data Source
-                2 points - Correctly identifies edX as the source of data
-                1 point - Mentions online courses but not specifically edX
-                0 points - Does not mention or incorrectly identifies the data source
-            2. Data Type
-                2 points - Mentions both video watching sessions and problem attempts
-                1 point - Mentions either video watching or problem attempts, but not both
-                0 points - Does not mention the types of data collected
-            3. Scale
+            1. Data Source and Methods
+                2 points - Correctly identifies edX as the source of data and analysis methods as Qualitative and Quantitative. 
+                1 point - Mentions online courses but not specifically edX and talks about analysis methods in general.
+                0 points - Does not mention or incorrectly identifies the data source and does not mention analysis methods
+            2. Scale
                 1 point - Mentions the large scale of the study (millions of sessions)
                 0 points - Does not mention the scale of data collection
         """
