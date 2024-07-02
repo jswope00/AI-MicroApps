@@ -22,6 +22,7 @@ function_map = {
 
 user_input = {}
 
+
 def build_field(phase_name, fields):
     for field_key, field in fields.items():
         field_type = field.get("type", "")
@@ -64,13 +65,18 @@ def build_field(phase_name, fields):
         ):
             user_input[field_key] = my_input_function(**kwargs)
 
-def call_openai_completions(system_message, user_message, scoring_instructions):
-    full_system_message = f"{system_message}\n\n{scoring_instructions}"
+
+def call_openai_completions(system_message, user_message, chat_history, scoring_instructions=None):
+    if scoring_instructions:
+        full_system_message = f"{system_message}\n\n{scoring_instructions}"
+    else:
+        full_system_message = system_message
+
     openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    llm_configuration = LLM_CONFIGURATION["gpt-4o"]
+    llm_configuration = st.session_state["selected_model"]
     response = openai_client.chat.completions.create(
         model=llm_configuration["model"],
-        messages=[
+        messages=chat_history + [
             {"role": "system", "content": full_system_message},
             {"role": "user", "content": user_message}
         ],
@@ -82,9 +88,11 @@ def call_openai_completions(system_message, user_message, scoring_instructions):
     )
     return response.choices[0].message.content
 
+
 def st_store(input, phase_name, field_key, phase_key):
     key = f"{phase_name}_{field_key}_{phase_key}"
     st.session_state[key] = input
+
 
 def build_scoring_instructions(rubric):
     scoring_instructions = f"""
@@ -93,6 +101,7 @@ def build_scoring_instructions(rubric):
     """
     return scoring_instructions
 
+
 def extract_score(text):
     pattern = r'"total":\s*"?(\d+)"?'
     match = re.search(pattern, text)
@@ -100,6 +109,7 @@ def extract_score(text):
         return int(match.group(1))
     else:
         return 0
+
 
 def check_scores(PHASE_NAME):
     all_passed = True
@@ -113,6 +123,7 @@ def check_scores(PHASE_NAME):
     st.session_state[f"{PHASE_NAME}_phase_status"] = all_passed
     return all_passed
 
+
 def skip_phase(PHASE_NAME, No_Submit=False):
     phase_fields = PHASES[PHASE_NAME]["fields"]
     for field_key in phase_fields:
@@ -121,6 +132,7 @@ def skip_phase(PHASE_NAME, No_Submit=False):
             st.session_state[f"{PHASE_NAME}_{field_key}_ai_response"] = "This phase was skipped."
     st.session_state[f"{PHASE_NAME}_phase_status"] = True
     st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+
 
 def celebration():
     rain(
@@ -136,9 +148,29 @@ def main():
         st.session_state['CURRENT_PHASE'] = 0
     if 'results' not in st.session_state:
         st.session_state['results'] = {}
+    if 'chat_history' not in st.session_state:
+        st.session_state['chat_history'] = []
+    if 'selected_model' not in st.session_state:
+        st.session_state['selected_model'] = LLM_CONFIGURATION["gpt-4o"]
 
     st.title("Critical Analysis of Video Engagement in Online Education")
-    st.markdown("Welcome to the critical analysis exercise. We'll go through the paper step by step, analyzing its key components.")
+    st.markdown(
+        "Welcome to the critical analysis exercise. We'll go through the paper step by step, analyzing its key components.")
+
+    with st.sidebar:
+        st.header("LLM Configuration")
+        model_name = st.selectbox("Select Model", options=list(LLM_CONFIGURATION.keys()))
+        st.session_state['selected_model'] = LLM_CONFIGURATION[model_name]
+        config = st.session_state['selected_model']
+
+        config["temperature"] = st.slider(f"Temperature ({model_name})", 0.0, 1.0, float(config["temperature"]),
+                                          step=0.01)
+        config["top_p"] = st.slider(f"Top P ({model_name})", 0.0, 1.0, float(config["top_p"]), step=0.01)
+        config["max_tokens"] = st.number_input(f"Max Tokens ({model_name})", 1, 4096, int(config["max_tokens"]))
+        config["frequency_penalty"] = st.slider(f"Frequency Penalty ({model_name})", 0.0, 1.0,
+                                                float(config["frequency_penalty"]), step=0.01)
+        config["presence_penalty"] = st.slider(f"Presence Penalty ({model_name})", 0.0, 1.0,
+                                               float(config["presence_penalty"]), step=0.01)
 
     i = 0
 
@@ -153,8 +185,7 @@ def main():
         PHASE_DICT = PHASES[PHASE_NAME]
         fields = PHASE_DICT["fields"]
 
-        st.write(f"#### Phase {i+1}: {PHASE_DICT['name']}")
-
+        st.write(f"#### Phase {i + 1}: {PHASE_DICT['name']}")
 
         build_field(PHASE_NAME, fields)
 
@@ -189,24 +220,48 @@ def main():
                 user_response = user_input[field_key]
                 system_instructions = PHASE_DICT.get("system_instructions", "")
                 rubric = PHASE_DICT.get("rubric", "")
+                scored_phase = PHASE_DICT.get("scored_phase", False)
 
-                scoring_instructions = build_scoring_instructions(rubric)
-                ai_feedback = call_openai_completions(system_instructions, user_response, scoring_instructions)
-                st_store(ai_feedback, PHASE_NAME, field_key, "ai_response")
+                scoring_instructions = build_scoring_instructions(rubric) if scored_phase else None
+                chat_history = st.session_state.get('chat_history', [])
 
-                score = extract_score(ai_feedback)
-                st_store(score, PHASE_NAME, field_key, "ai_score")
+                if scored_phase:
+                    # Get the score response
+                    score_response = call_openai_completions(system_instructions, user_response, chat_history,
+                                                             scoring_instructions)
+                    st.session_state['chat_history'].append({"role": "user", "content": user_response})
+                    st.session_state['chat_history'].append({"role": "assistant", "content": score_response})
+                    st_store(score_response, PHASE_NAME, field_key, "ai_score_response")
 
-                feedback_message = f"""
-                                    AI Feedback: {ai_feedback}\n
-                                    Score: {score}
-                                    """
-                st.success(feedback_message)
+                    score = extract_score(score_response)
+                    st_store(score, PHASE_NAME, field_key, "ai_score")
+
+                    # Get the feedback response
+                    feedback_response = call_openai_completions(system_instructions, user_response,
+                                                                st.session_state['chat_history'])
+                    st.session_state['chat_history'].append({"role": "assistant", "content": feedback_response})
+                    st_store(feedback_response, PHASE_NAME, field_key, "ai_response")
+
+                    feedback_message = f"""
+                                        AI Score Feedback: {score_response}\n
+                                        AI Feedback: {feedback_response}\n
+                                        Score: {score}
+                                        """
+                    st.success(feedback_message)
+                else:
+                    feedback_response = call_openai_completions(system_instructions, user_response, chat_history)
+                    st.session_state['chat_history'].append({"role": "user", "content": user_response})
+                    st.session_state['chat_history'].append({"role": "assistant", "content": feedback_response})
+                    st_store(feedback_response, PHASE_NAME, field_key, "ai_response")
+
+                    feedback_message = f"""
+                                        AI Feedback: {feedback_response}
+                                        """
+                    st.success(feedback_message)
 
                 if PHASE_NAME not in st.session_state['results']:
                     st.session_state['results'][PHASE_NAME] = []
                 st.session_state['results'][PHASE_NAME].append(feedback_message)
-
 
         if next_phase_button:
             if check_scores(PHASE_NAME):
@@ -225,6 +280,7 @@ def main():
                 celebration()
 
         i = min(i + 1, len(PHASES))
+
 
 if __name__ == "__main__":
     main()

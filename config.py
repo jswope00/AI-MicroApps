@@ -1,4 +1,3 @@
-
 APP_TITLE = "Guided Critical Analysis"
 APP_INTRO = """In this guided case study, we'll both read the same case study. Then, you'll be guided through an analysis of the paper. Let's begin by reading the paper!
 
@@ -48,7 +47,9 @@ PHASES = {
         },
         "system_instructions": "The user will provide you with their name and background of the study. Greet the user formally and acknowledge the user's background and explain how it relates to the paper we'll be analyzing.",
         "user_instructions": "My name is {name} and here is the {background} of the study",
-        "scored_phase": False
+        "scored_phase": False,
+        "allow_revisions": False,
+        "allow_skip": True
     },
     "phase2": {
         "name": "Article Overview",
@@ -77,7 +78,9 @@ PHASES = {
                 2 points - Mentions both the focus on production decisions and their impact on student engagement
                 1 point - Mentions either production decisions or student engagement, but not both
                 0 points - Does not mention either key aspect of the study
-        """
+        """,
+        "allow_revisions": True,
+        "allow_skip": True
     },
     "phase3": {
         "name": "Methodology Analysis",
@@ -105,7 +108,9 @@ PHASES = {
             2. Scale
                 1 point - Mentions the large scale of the study (millions of sessions)
                 0 points - Does not mention the scale of data collection
-        """
+        """,
+        "allow_revisions": True,
+        "allow_skip": True
     },
     "phase4": {
         "name": "Results and Implications",
@@ -135,10 +140,11 @@ PHASES = {
                 2 points - All mentioned findings are accurate
                 1 point - Some mentioned findings are accurate, some are not
                 0 points - No accurate findings mentioned
-        """
+        """,
+        "allow_revisions": True,
+        "allow_skip": True
     }
 }
-
 
 LLM_CONFIGURATION = {
     "gpt-3.5-turbo": {
@@ -172,6 +178,3 @@ LLM_CONFIGURATION = {
         "price_output_token_1M":15
     }
 }
-
-
-
