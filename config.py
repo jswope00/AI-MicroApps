@@ -45,8 +45,10 @@ PHASES = {
                 "value": "I have taken a few online courses and noticed that some video lectures are more engaging than others. I think factors like video length and the instructor's speaking style might affect engagement, but I'm not sure about the specifics or if there's research on this topic."
             }
         },
-        "system_instructions": "The user will provide you with their name and background of the study. Greet the user formally and acknowledge the user's background and explain how it relates to the paper we'll be analyzing.",
-        "user_instructions": "My name is {name} and here is the {background} of the study",
+        "phase_instructions": "The user will provide you with their name and background of the study. Greet the user formally and acknowledge the user's background and explain how it relates to the paper we'll be analyzing.",
+        "user_prompt": "My name is {name} and here is the {background} of the study",
+        "ai_response": False,
+        "custom_response": "Welcome {name} and Thanks for providing your background in the study as {background}.",
         "scored_phase": False,
         "allow_revisions": False,
         "allow_skip": True
@@ -65,8 +67,9 @@ PHASES = {
                 "value": "The main objective of this study is to identify which factors in video production have the most significant impact on student engagement in online educational videos. Specifically, the researchers aim to understand how elements like video length, speaking rate, production style, and instructor visibility affect how long students watch videos and how they perform on subsequent problem-solving tasks."
             }
         },
-        "system_instructions": "Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
-        "user_instructions": "Here is the main topic of the research paper: {topic} and the study's primary goal is: {research_question}",
+        "phase_instructions": "Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
+        "user_prompt": "Here is the main topic of the research paper: {topic} and the study's primary goal is: {research_question}",
+        "ai_response": True,
         "scored_phase": True,
         "minimum_score": 2,
         "rubric": """
@@ -96,8 +99,9 @@ PHASES = {
                 "value": "The researchers used a combination of quantitative and qualitative methods to analyze the data. They performed statistical analyses to correlate various video attributes (such as length, speaking rate, production style, and instructor visibility) with engagement metrics (video watching time and performance on subsequent problems). They also conducted qualitative analyses of video styles and content to categorize videos and understand nuances that might not be captured by quantitative data alone. The researchers used these methods to identify patterns and trends in how different video characteristics influenced student engagement and learning outcomes."
             }
         },
-        "system_instructions": "Assess the user's understanding of the data collection process and analysis methods. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods.",
-        "user_instructions": "The data was collected as follows: {data_collection}. The analysis methods used were: {analysis_method}",
+        "phase_instructions": "Assess the user's understanding of the data collection process and analysis methods. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods.",
+        "user_prompt": "The data was collected as follows: {data_collection}. The analysis methods used were: {analysis_method}",
+        "ai_response": True,
         "scored_phase": True,
         "minimum_score": 2,
         "rubric": """
@@ -126,8 +130,9 @@ PHASES = {
                 "value": "These findings could significantly impact the creation of online educational videos:\n\n1. For educators: Instructors might focus on creating shorter, more focused videos instead of long lectures. They may also adjust their speaking style to be more enthusiastic and slightly faster-paced.\n\n2. For video producers: There might be a shift towards more personal, less polished production styles that emphasize the instructor's presence. This could include more use of tablet drawing techniques and interspersing talking head shots with informational slides.\n\n3. For platform designers: Learning management systems and video hosting platforms might incorporate features that encourage shorter video segments and provide analytics on student engagement based on video characteristics.\n\n4. For students: Learners might benefit from more engaging content, potentially leading to improved learning outcomes and course completion rates.\n\n5. For institutions: Universities and other education providers might need to invest in training for educators on effective online video production techniques, rather than simply repurposing existing lecture recordings.\n\nOverall, these findings could lead to a more standardized approach to creating engaging online educational content, potentially revolutionizing the way online courses are designed and delivered."
             }
         },
-        "system_instructions": "Evaluate the user's grasp of the key findings and implications. If they miss important findings and implications, provide them with hints.",
-        "user_instructions": "The key findings of the study are: {key_findings}. The implications for the future of online educational videos are: {implications}",
+        "phase_instructions": "Evaluate the user's grasp of the key findings and implications. If they miss important findings and implications, provide them with hints.",
+        "user_prompt": "The key findings of the study are: {key_findings}. The implications for the future of online educational videos are: {implications}",
+        "ai_response": True,
         "scored_phase": True,
         "minimum_score": 3,
         "rubric": """
@@ -146,7 +151,10 @@ PHASES = {
     }
 }
 
-LLM_CONFIGURATION = {
+selected_llm = "gpt-3.5-turbo"
+
+
+LLM_CONFIGURATIONS = {
     "gpt-3.5-turbo": {
         "model": "gpt-3.5-turbo-0125",
         "frequency_penalty": 0,
@@ -176,5 +184,55 @@ LLM_CONFIGURATION = {
         "top_p": 1,
         "price_input_token_1M":5,
         "price_output_token_1M":15
+    },
+    "gemini-1.0-pro": {
+        "model": "gemini-1.0-pro",
+        "temperature": 1,
+        "top_p": 0.95,
+        "max_tokens": 1000,
+        "price_input_token_1M":.5,
+        "price_output_token_1M":1.5
+    },
+    "gemini-1.5-flash": {
+        "model": "gemini-1.5-flash",
+        "temperature": 1,
+        "top_p": 0.95,
+        "max_tokens": 1000,
+        "price_input_token_1M":.35,
+        "price_output_token_1M":1.05
+    },
+    "gemini-1.5-pro": {
+        "model": "gemini-1.5-pro",
+        "temperature": 1,
+        "top_p": 0.95,
+        "max_tokens": 1000,
+        "price_input_token_1M":3.5,
+        "price_output_token_1M":10.50
+    },
+    "claude-opus": {
+        "model": "claude-3-opus-20240229",
+        "max_tokens": 1000,
+        "temperature": 1,
+        "price_input_token_1M": 15,
+        "price_output_token_1M": 75
+    },
+    "claude-sonnet": {
+        "model": "claude-3-sonnet-20240229",
+        "max_tokens": 1000,
+        "temperature": 1,
+        "price_input_token_1M": 3,
+        "price_output_token_1M": 15
+    },
+    "claude-haiku": {
+        "model": "claude-3-haiku-20240307",
+        "max_tokens": 1000,
+        "temperature": 1,
+        "price_input_token_1M": 0.25,
+        "price_output_token_1M": 1.25
     }
 }
+
+SCORING_DEBUG_MODE = True
+
+COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
+COMPLETION_CELEBRATION = False
