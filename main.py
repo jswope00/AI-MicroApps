@@ -100,9 +100,11 @@ def build_field(phase_name, fields):
 def call_openai_completions(phase_instructions, user_prompt):
     selected_llm = st.session_state['selected_llm']
     llm_configuration = st.session_state['llm_config']
+
     if selected_llm in ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]:
         try:
             openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
             response = openai_client.chat.completions.create(
                 model=llm_configuration["model"],
                 messages=[
@@ -115,9 +117,9 @@ def call_openai_completions(phase_instructions, user_prompt):
                 frequency_penalty=llm_configuration.get("frequency_penalty", 0),
                 presence_penalty=llm_configuration.get("presence_penalty", 0)
             )
-            input_price = int(response.usage.prompt_tokens) * llm_configuration.get("price_input_token_1M", 0) / 1000000
-            output_price = int(response.usage.completion_tokens) * llm_configuration.get("price_output_token_1M",
-                                                                                         0) / 1000000
+
+            input_price = int(response.usage.prompt_tokens) * llm_configuration["price_input_token_1M"] / 1000000
+            output_price = int(response.usage.completion_tokens) * llm_configuration["price_output_token_1M"] / 1000000
             total_price = input_price + output_price
             st.session_state['TOTAL_PRICE'] += total_price
             return response.choices[0].message.content
@@ -169,10 +171,8 @@ def call_openai_completions(phase_instructions, user_prompt):
                     {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
                 ]
             )
-            input_price = int(anthropic_response.usage.input_tokens) * llm_configuration.get("price_input_token_1M",
-                                                                                             0) / 1000000
-            output_price = int(anthropic_response.usage.output_tokens) * llm_configuration.get("price_output_token_1M",
-                                                                                               0) / 1000000
+            input_price = int(anthropic_response.usage.input_tokens) * llm_configuration["price_input_token_1M"] / 1000000
+            output_price = int(anthropic_response.usage.output_tokens) * llm_configuration["price_output_token_1M"] / 1000000
             total_price = input_price + output_price
             response_cleaned = '\n'.join([block.text for block in anthropic_response.content if block.type == 'text'])
             st.session_state['TOTAL_PRICE'] += total_price
@@ -257,10 +257,12 @@ def main():
             "frequency_penalty": st.slider("Frequency Penalty", min_value=0.0, max_value=1.0,
                                            value=float(initial_config.get("frequency_penalty", 0.0)), step=0.01),
             "presence_penalty": st.slider("Presence Penalty", min_value=0.0, max_value=1.0,
-                                          value=float(initial_config.get("presence_penalty", 0.0)), step=0.01)
+                                          value=float(initial_config.get("presence_penalty", 0.0)), step=0.01),
+            "price_input_token_1M": st.number_input("Input Token Price 1M",value=initial_config.get("price_input_token_1M", 0)),
+            "price_output_token_1M": st.number_input("Output Token Price 1M",value=initial_config.get("price_output_token_1M", 0))
         }
 
-        st.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
+
 
     if 'CURRENT_PHASE' not in st.session_state:
         st.session_state['CURRENT_PHASE'] = 0
@@ -346,6 +348,7 @@ def main():
                         st.info(ai_feedback)
                         st.info(ai_score)
                         st.info(score)
+                        st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
 
                         if check_score(PHASE_NAME):
                             st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
@@ -357,6 +360,7 @@ def main():
                     ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     st.info(ai_feedback)
+                    st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
             else:
                 res_box = st.info(body="", icon="🤖")
                 result = ""
@@ -366,6 +370,7 @@ def main():
                     result += char
                     res_box.info(body=result, icon="🤖")
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
+                st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
 
             if not PHASE_DICT.get("scored_phase", False):
                 st.session_state[f"{PHASE_NAME}_phase_status"] = True
