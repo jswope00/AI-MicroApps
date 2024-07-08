@@ -117,7 +117,6 @@ def call_openai_completions(phase_instructions, user_prompt):
                 frequency_penalty=llm_configuration.get("frequency_penalty", 0),
                 presence_penalty=llm_configuration.get("presence_penalty", 0)
             )
-
             input_price = int(response.usage.prompt_tokens) * llm_configuration["price_input_token_1M"] / 1000000
             output_price = int(response.usage.completion_tokens) * llm_configuration["price_output_token_1M"] / 1000000
             total_price = input_price + output_price
