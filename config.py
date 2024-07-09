@@ -113,7 +113,7 @@ PHASES = {
                 1 point - Mentions the large scale of the study (millions of sessions)
                 0 points - Does not mention the scale of data collection
         """,
-        "allow_revisions": True,
+        "allow_revisions": False,
         "allow_skip": True
     },
     "phase4": {
@@ -233,6 +233,7 @@ LLM_CONFIGURATIONS = {
 }
 
 SCORING_DEBUG_MODE = True
+MAX_REVISIONS = 3
 
 COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
 COMPLETION_CELEBRATION = False

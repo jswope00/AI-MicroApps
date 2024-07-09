@@ -3,8 +3,6 @@ import google.generativeai as generativeai
 import anthropic
 import os
 from dotenv import load_dotenv
-import json
-import pprint
 import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
@@ -27,6 +25,14 @@ function_map = {
     "markdown": st.markdown,
     "selectbox": st.selectbox
 }
+
+if 'revision_count' not in st.session_state:
+    st.session_state['revision_count'] = 0
+if 'additional_prompt' not in st.session_state:
+    st.session_state['additional_prompt'] = ""
+for i in range(len(PHASES.keys())):
+    if f'feedback_{i}' not in st.session_state:
+        st.session_state[f'feedback_{i}'] = ""
 
 
 def build_field(phase_name, fields):
@@ -103,9 +109,7 @@ def call_openai_completions(phase_instructions, user_prompt):
 
     if selected_llm in ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]:
         try:
-            openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-            response = openai_client.chat.completions.create(
+            response = openai.chat.completions.create(
                 model=llm_configuration["model"],
                 messages=[
                     {"role": "system", "content": phase_instructions},
@@ -118,7 +122,8 @@ def call_openai_completions(phase_instructions, user_prompt):
                 presence_penalty=llm_configuration.get("presence_penalty", 0)
             )
             input_price = int(response.usage.prompt_tokens) * llm_configuration["price_input_token_1M"] / 1000000
-            output_price = int(response.usage.completion_tokens) * llm_configuration["price_output_token_1M"] / 1000000
+            output_price = int(response.usage.completion_tokens) * llm_configuration[
+                "price_output_token_1M"] / 1000000
             total_price = input_price + output_price
             st.session_state['TOTAL_PRICE'] += total_price
             return response.choices[0].message.content
@@ -155,7 +160,6 @@ def call_openai_completions(phase_instructions, user_prompt):
         except Exception as e:
             st.write("**Gemini Error Response:**")
             st.error(f"Error: {e}")
-            print(f"Error: {e}")
     if selected_llm in ["claude-opus", "claude-sonnet", "claude-haiku"]:
         try:
             client = anthropic.Anthropic(api_key=claude_api_key)
@@ -170,8 +174,10 @@ def call_openai_completions(phase_instructions, user_prompt):
                     {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
                 ]
             )
-            input_price = int(anthropic_response.usage.input_tokens) * llm_configuration["price_input_token_1M"] / 1000000
-            output_price = int(anthropic_response.usage.output_tokens) * llm_configuration["price_output_token_1M"] / 1000000
+            input_price = int(anthropic_response.usage.input_tokens) * llm_configuration[
+                "price_input_token_1M"] / 1000000
+            output_price = int(anthropic_response.usage.output_tokens) * llm_configuration[
+                "price_output_token_1M"] / 1000000
             total_price = input_price + output_price
             response_cleaned = '\n'.join([block.text for block in anthropic_response.content if block.type == 'text'])
             st.session_state['TOTAL_PRICE'] += total_price
@@ -179,10 +185,11 @@ def call_openai_completions(phase_instructions, user_prompt):
         except Exception as e:
             st.write(f"**Anthropic Error Response: {selected_llm}**")
             st.error(f"Error: {e}")
-            print(f"Error: {e}")
+
 
 def format_user_prompt(prompt, user_input):
     return prompt.format(**user_input)
+
 
 def st_store(input, phase_name, phase_key, field_key=""):
     if field_key:
@@ -191,12 +198,14 @@ def st_store(input, phase_name, phase_key, field_key=""):
         key = f"{phase_name}_{phase_key}"
     st.session_state[key] = input
 
+
 def build_scoring_instructions(rubric):
     scoring_instructions = f"""
     Please score the user's previous response based on the following rubric: \n{rubric}
     \n\nPlease output your response as JSON, using this format: {{ "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }}
     """
     return scoring_instructions
+
 
 def extract_score(text):
     pattern = r'"total":\s*"?(\d+)"?'
@@ -205,6 +214,7 @@ def extract_score(text):
         return int(match.group(1))
     else:
         return 0
+
 
 def check_score(PHASE_NAME):
     score = st.session_state[f"{PHASE_NAME}_ai_score"]
@@ -219,6 +229,7 @@ def check_score(PHASE_NAME):
         st.session_state[f"{PHASE_NAME}_phase_status"] = False
         return False
 
+
 def skip_phase(PHASE_NAME, No_Submit=False):
     phase_fields = PHASES[PHASE_NAME]["fields"]
     for field_key in phase_fields:
@@ -228,6 +239,7 @@ def skip_phase(PHASE_NAME, No_Submit=False):
     st.session_state[f"{PHASE_NAME}_phase_status"] = True
     st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
 
+
 def celebration():
     rain(
         emoji="🥳",
@@ -235,6 +247,7 @@ def celebration():
         falling_speed=5,
         animation_length=1,
     )
+
 
 def main():
     if 'TOTAL_PRICE' not in st.session_state:
@@ -257,11 +270,9 @@ def main():
                                            value=float(initial_config.get("frequency_penalty", 0.0)), step=0.01),
             "presence_penalty": st.slider("Presence Penalty", min_value=0.0, max_value=1.0,
                                           value=float(initial_config.get("presence_penalty", 0.0)), step=0.01),
-            "price_input_token_1M": st.number_input("Input Token Price 1M",value=initial_config.get("price_input_token_1M", 0)),
-            "price_output_token_1M": st.number_input("Output Token Price 1M",value=initial_config.get("price_output_token_1M", 0))
+            "price_input_token_1M": st.number_input("Input Token Price 1M", value=initial_config.get("price_input_token_1M", 0)),
+            "price_output_token_1M": st.number_input("Output Token Price 1M", value=initial_config.get("price_output_token_1M", 0))
         }
-
-
 
     if 'CURRENT_PHASE' not in st.session_state:
         st.session_state['CURRENT_PHASE'] = 0
@@ -340,41 +351,66 @@ def main():
                     if "rubric" in PHASE_DICT:
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
                         ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
-                        ai_score = call_openai_completions(scoring_instructions,ai_feedback)
+                        ai_score = call_openai_completions(scoring_instructions, ai_feedback)
                         st_store(ai_feedback, PHASE_NAME, "ai_result")
                         score = extract_score(ai_score)
                         st_store(score, PHASE_NAME, "ai_score")
+                        st.session_state[f'feedback_{i}'] = ai_feedback
+                        st.session_state['score'] = score
                         st.info(ai_feedback)
-                        st.info(ai_score)
                         st.info(score)
                         st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
-
-                        if check_score(PHASE_NAME):
-                            st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
-                        else:
-                            st.warning("You haven't passed. Please try again.")
                     else:
                         st.error('You need to include a rubric for a scored phase', icon="🚨")
                 else:
                     ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
+                    st.session_state[f'feedback_{i}'] = ai_feedback
                     st.info(ai_feedback)
                     st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
             else:
                 res_box = st.info(body="", icon="🤖")
                 result = ""
-                hard_coded_message = PHASE_DICT.get('custom_response',None)
+                hard_coded_message = PHASE_DICT.get('custom_response', None)
                 hard_coded_message = format_user_prompt(hard_coded_message, user_input)
                 for char in hard_coded_message:
                     result += char
                     res_box.info(body=result, icon="🤖")
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
-                st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
-
-            if not PHASE_DICT.get("scored_phase", False):
-                st.session_state[f"{PHASE_NAME}_phase_status"] = True
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
-                st.rerun()
+
+
+        if PHASE_DICT.get("allow_revisions", False):
+            if f'feedback_{i}' in st.session_state and st.session_state[f'feedback_{i}']:
+                st.session_state['additional_prompt'] = st.text_input("Enter additional prompt", value="", key= f"phase{i}")
+                if st.button("Revise", key=f"revise_{i}"):
+                    st.session_state['revision_count'] += 1
+                    if st.session_state['revision_count'] < MAX_REVISIONS:
+                        phase_instructions = PHASE_DICT.get("phase_instructions", "")
+                        user_prompt_template = PHASE_DICT.get("user_prompt", "")
+                        formatted_user_prompt = format_user_prompt(user_prompt_template, user_input)
+                        formatted_user_prompt += st.session_state['additional_prompt']
+                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
+                        st_store(ai_feedback, PHASE_NAME, "ai_response")
+                        st.session_state[f'feedback_{i}'] = ai_feedback
+                        st.info(ai_feedback)
+                        st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
+                    else:
+                        st.warning("Revision limits exceeded")
+
+        if st.session_state[f'feedback_{i}']:
+            next_phase_button = st.button("Go to Next Phase", key=f"next_phase_{i}")
+            if next_phase_button:
+                if PHASE_DICT.get("scored_phase", False):
+                    if check_score(PHASE_NAME):
+                        st.session_state['revision_count'] = 0  # Reset revision count for next phase
+                        st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+                    else:
+                        st.warning("You haven't passed. Please try again.")
+                else:
+                    st.session_state['revision_count'] = 0  # Reset revision count for next phase
+                    st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+
 
         if skip_button:
             skip_phase(PHASE_NAME)
