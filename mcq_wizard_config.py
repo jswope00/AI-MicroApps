@@ -91,6 +91,7 @@ PHASES = {
         "ai_response": True,
         "scored_phase": False,
         "allow_revisions": True,
+        "max_revisions": 2,
         "allow_skip": False,
         "show_prompt": True,
         "read_only_prompt": False
@@ -226,7 +227,6 @@ LLM_CONFIGURATIONS = {
 }
 
 SCORING_DEBUG_MODE = True
-MAX_REVISIONS = 3
 
 COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
 COMPLETION_CELEBRATION = False

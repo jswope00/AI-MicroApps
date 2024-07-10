@@ -362,6 +362,16 @@ def main():
         if key in st.session_state:
             st.info(st.session_state[key], icon="🤖")
 
+        key = f"{PHASE_NAME}_ai_response_revision_1"
+        # If there are any revisions, enter the loop
+        if key in st.session_state:
+            z = 1
+            while z <= PHASE_DICT.get("max_revisions",10):
+                key = f"{PHASE_NAME}_ai_response_revision_{z}"
+                if key in st.session_state:
+                    st.info(st.session_state[key], icon="🤖")
+                z += 1
+
         key = f"{PHASE_NAME}_ai_result"
         if key in st.session_state and SCORING_DEBUG_MODE == True:
             st.info(st.session_state[key], icon="🤖")
@@ -410,22 +420,23 @@ def main():
         
 
         if PHASE_DICT.get("allow_revisions", False):
-            if f'feedback_{i}' in st.session_state and st.session_state[f'feedback_{i}']:
-                st.session_state['additional_prompt'] = st.text_input("Enter additional prompt", value="", key= f"phase{i}")
-                if st.button("Revise", key=f"revise_{i}"):
-                    st.session_state['revision_count'] += 1
-                    if st.session_state['revision_count'] < MAX_REVISIONS:
-                        phase_instructions = PHASE_DICT.get("phase_instructions", "")
-                        user_prompt_template = PHASE_DICT.get("user_prompt", "")
-                        formatted_user_prompt = format_user_prompt(user_prompt_template, user_input)
-                        formatted_user_prompt += st.session_state['additional_prompt']
-                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
-                        st_store(ai_feedback, PHASE_NAME, "ai_response")
-                        st.session_state[f'feedback_{i}'] = ai_feedback
-                        st.info(ai_feedback)
-                        st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
-                    else:
-                        st.warning("Revision limits exceeded")
+            with st.expander("Revise this response?"):
+                max_revisions = PHASE_DICT.get("max_revisions", 10)
+                if st.session_state['revision_count'] < max_revisions:
+                    if f'feedback_{i}' in st.session_state and st.session_state[f'feedback_{i}']:
+                        st.session_state['additional_prompt'] = st.text_input("Enter additional prompt", value="", key= f"phase{i}")
+                        if st.button("Revise", key=f"revise_{i}"):
+                            st.session_state['revision_count'] += 1
+                            phase_instructions = PHASE_DICT.get("phase_instructions", "")
+                            user_prompt_template = PHASE_DICT.get("user_prompt", "")
+                            formatted_user_prompt = format_user_prompt(user_prompt_template, user_input)
+                            formatted_user_prompt += st.session_state['additional_prompt']
+                            ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
+                            st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(st.session_state['revision_count']))
+                            st.session_state[f'feedback_{i}'] = ai_feedback
+                            st.rerun()
+                else:
+                    st.warning("Revision limits exceeded")
 
         if st.session_state[f'feedback_{i}']:
             next_phase_button = st.button("Go to Next Phase", key=f"next_phase_{i}")
