@@ -122,13 +122,17 @@ def call_openai_completions(phase_instructions, user_prompt):
     selected_llm = st.session_state['selected_llm']
     llm_configuration = st.session_state['llm_config']
     chat_history = st.session_state["chat_history"]
+    message_history = []
+    message_history_gemini = []
+    if len(chat_history) > 0:
+        for history in chat_history:
+            user_content = history["user"]
+            assistant_content = history["assistant"]
+            message_history.extend(
+                [{"role": "user", "content": user_content}, {"role": "assistant", "content": assistant_content}])
+            message_history_gemini.extend(
+                [{"role": "user", "parts": [user_content]}, {"role": "model", "parts": [assistant_content]}])
     if selected_llm in ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]:
-        message_history = []
-        if len(chat_history)>0:
-            for history in chat_history:
-                user_content = history["user"]
-                assistant_content = history["assistant"]
-                message_history.extend([{"role":"user","content":user_content},{"role":"assistant","content":assistant_content}])
         try:
             response = openai.chat.completions.create(
                 model=llm_configuration["model"],
@@ -166,14 +170,7 @@ def call_openai_completions(phase_instructions, user_prompt):
                 system_instruction=SYSTEM_PROMPT + "\n" + phase_instructions,
             )
             chat_session = model.start_chat(
-                history=[
-                    #{
-                    #    "role": "model",
-                    #    "parts": [
-                    #        phase_instructions,
-                    #    ],
-                    #}
-                ]
+                history= message_history_gemini
             )
             gemini_response = chat_session.send_message(user_prompt)
             gemini_response_text = gemini_response.text
@@ -190,7 +187,7 @@ def call_openai_completions(phase_instructions, user_prompt):
                 max_tokens=llm_configuration["max_tokens"],
                 temperature=llm_configuration["temperature"],
                 system=SYSTEM_PROMPT + "\n" + phase_instructions,
-                messages=[
+                messages= message_history+[
                     {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
                 ]
             )
