@@ -199,8 +199,8 @@ def call_openai_completions(phase_instructions, user_prompt):
             st.error(f"Error: {e}")
 
 
-def format_user_prompt(prompt, user_input):
-    prompt = prompt_conditionals(prompt, user_input)
+def format_user_prompt(prompt, user_input, phase_name=None):
+    prompt = prompt_conditionals(prompt, user_input, phase_name)
     formatted_user_prompt = prompt.format(**user_input)
     return formatted_user_prompt
 
@@ -337,11 +337,11 @@ def main():
                     label="Prompt",
                     height=100,
                     max_chars=50000,
-                    value=format_user_prompt(user_prompt_template, user_input),
+                    value=format_user_prompt(user_prompt_template, user_input, PHASE_NAME),
                     disabled=PHASE_DICT.get("read_only_prompt",False)
                     )
         else:
-            formatted_user_prompt = format_user_prompt(user_prompt_template, user_input)
+            formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME)
 
         if PHASE_DICT.get("no_submission", False):
             if key not in st.session_state:
@@ -417,7 +417,7 @@ def main():
                 res_box = st.info(body="", icon="🤖")
                 result = ""
                 hard_coded_message = PHASE_DICT.get('custom_response', None)
-                hard_coded_message = format_user_prompt(hard_coded_message, user_input)
+                hard_coded_message = format_user_prompt(hard_coded_message, user_input, PHASE_NAME)
                 for char in hard_coded_message:
                     result += char
                     res_box.info(body=result, icon="🤖")
@@ -447,7 +447,7 @@ def main():
                                 #get all the normal instructions and prompts
                                 phase_instructions = PHASE_DICT.get("phase_instructions", "")
                                 user_prompt_template = PHASE_DICT.get("user_prompt", "")
-                                formatted_user_prompt = format_user_prompt(user_prompt_template, user_input)
+                                formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME)
                                 #add the additional prompt to the end
                                 formatted_user_prompt += st.session_state['additional_prompt']
                                 #Call the AI and get a response

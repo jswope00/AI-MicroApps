@@ -132,48 +132,49 @@ PHASES = {
 
 }
 
-def prompt_conditionals(prompt, user_input):
+def prompt_conditionals(prompt, user_input, phase_name=None):
 
-    if user_input["original_content_only"] == True:
-        prompt += "Please create questions based solely on the provided text. \n\n"
-    else: 
-        prompt += "Please create questions that incorporate both the provided text as well as your knowledge of the topic. \n\n"
+    if phase_name == "phase1":
+        if user_input["original_content_only"] == True:
+            prompt += "Please create questions based solely on the provided text. \n\n"
+        else: 
+            prompt += "Please create questions that incorporate both the provided text as well as your knowledge of the topic. \n\n"
 
-    if user_input["distractors_difficulty"] == "Obvious":
-        prompt += "Distractors should be obviously incorrect options. \n\n"
-    elif user_input["distractors_difficulty"] == "Challenging":
-        prompt += "Distractors should sound like they could be plausible, but are ultimately incorrect. \n\n"
+        if user_input["distractors_difficulty"] == "Obvious":
+            prompt += "Distractors should be obviously incorrect options. \n\n"
+        elif user_input["distractors_difficulty"] == "Challenging":
+            prompt += "Distractors should sound like they could be plausible, but are ultimately incorrect. \n\n"
 
-    if user_input["learning_objective"]:
-        prompt += "Focus on meeting the following learning objective(s) : {learning_objective} \n\n"
+        if user_input["learning_objective"]:
+            prompt += "Focus on meeting the following learning objective(s) : {learning_objective} \n\n"
 
-    if user_input["learner_feedback"]:
-        prompt += "Please provide a feedback section for each question that says why the correct answer is the best answer and the other options are incorrect. \n\n"
+        if user_input["learner_feedback"]:
+            prompt += "Please provide a feedback section for each question that says why the correct answer is the best answer and the other options are incorrect. \n\n"
 
-    if user_input["hints"]:
-        prompt += "Also, include a hint for each question.\n\n"
+        if user_input["hints"]:
+            prompt += "Also, include a hint for each question.\n\n"
 
-    if user_input["output_format"] == "OLX":
-        prompt += "Please write your MCQs in Open edX OLX format\n\n"
+        if user_input["output_format"] == "OLX":
+            prompt += "Please write your MCQs in Open edX OLX format\n\n"
 
-    prompt += """
-        Format each question like the following:
-        Question: [Question Text] \n
-        A) [Answer A] \n
-        B) [Answer B] \n
-        ....
-        N) [Answer N] \n
+        prompt += """
+            Format each question like the following:
+            Question: [Question Text] \n
+            A) [Answer A] \n
+            B) [Answer B] \n
+            ....
+            N) [Answer N] \n
 
-        Solution: [Answer A, B...N]\n\n
-        """
+            Solution: [Answer A, B...N]\n\n
+            """
 
-    if user_input["learner_feedback"]:
-        prompt += "Feedback: [Feedback]\n\n"
+        if user_input["learner_feedback"]:
+            prompt += "Feedback: [Feedback]\n\n"
 
-    if user_input["hints"]:
-        prompt += "Hint: [Hint]\n\n"
+        if user_input["hints"]:
+            prompt += "Hint: [Hint]\n\n"
 
-    prompt += "Here is the text: \n===============\n{topic_content}"
+        prompt += "Here is the text: \n===============\n{topic_content}"
         
 
     return prompt
