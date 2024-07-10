@@ -1,4 +1,4 @@
-# AI-Microapp-Template-Completion-v2
+# AI-Microapp-Template
 
 ## Overview
 
