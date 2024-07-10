@@ -125,7 +125,7 @@ def call_openai_completions(phase_instructions, user_prompt):
             response = openai.chat.completions.create(
                 model=llm_configuration["model"],
                 messages=[
-                    {"role": "system", "content": phase_instructions},
+                    {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
                     {"role": "user", "content": user_prompt}
                 ],
                 max_tokens=llm_configuration.get("max_tokens", 1000),
@@ -154,16 +154,17 @@ def call_openai_completions(phase_instructions, user_prompt):
             }
             model = generativeai.GenerativeModel(
                 llm_configuration["model"],
-                generation_config=generation_config
+                generation_config=generation_config,
+                system_instruction=SYSTEM_PROMPT + "\n" + phase_instructions,
             )
             chat_session = model.start_chat(
                 history=[
-                    {
-                        "role": "model",
-                        "parts": [
-                            phase_instructions,
-                        ],
-                    }
+                    #{
+                    #    "role": "model",
+                    #    "parts": [
+                    #        phase_instructions,
+                    #    ],
+                    #}
                 ]
             )
             gemini_response = chat_session.send_message(user_prompt)
@@ -173,14 +174,14 @@ def call_openai_completions(phase_instructions, user_prompt):
         except Exception as e:
             st.write("**Gemini Error Response:**")
             st.error(f"Error: {e}")
-    if selected_llm in ["claude-opus", "claude-sonnet", "claude-haiku"]:
+    if selected_llm in ["claude-opus", "claude-sonnet", "claude-haiku", "claude-3.5-sonnet"]:
         try:
             client = anthropic.Anthropic(api_key=claude_api_key)
             anthropic_response = client.messages.create(
                 model=llm_configuration["model"],
                 max_tokens=llm_configuration["max_tokens"],
                 temperature=llm_configuration["temperature"],
-                system=phase_instructions,
+                system=SYSTEM_PROMPT + "\n" + phase_instructions,
                 messages=[
                     {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
                 ]
@@ -264,8 +265,6 @@ def celebration():
 
 def main():
 
-    st.markdown(st.session_state)
-
     if 'TOTAL_PRICE' not in st.session_state:
         st.session_state['TOTAL_PRICE'] = 0
 
@@ -276,7 +275,7 @@ def main():
 
         # Parameter adjustment inputs
         st.session_state['llm_config'] = {
-            "model": selected_llm,
+            "model": initial_config["model"],
             "temperature": st.slider("Temperature", min_value=0.0, max_value=1.0,
                                      value=float(initial_config.get("temperature", 1.0)), step=0.01),
             "max_tokens": st.slider("Max Tokens", min_value=50, max_value=4000,
@@ -289,6 +288,9 @@ def main():
             "price_input_token_1M": st.number_input("Input Token Price 1M", value=initial_config.get("price_input_token_1M", 0)),
             "price_output_token_1M": st.number_input("Output Token Price 1M", value=initial_config.get("price_output_token_1M", 0))
         }
+
+        if DISPLAY_COST:
+            st.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
 
     if 'CURRENT_PHASE' not in st.session_state:
         st.session_state['CURRENT_PHASE'] = 0
@@ -410,7 +412,7 @@ def main():
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     #st.session_state[f'feedback_{i}'] = ai_feedback
                     st.info(ai_feedback)
-                    st.sidebar.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
+                    
             else:
                 res_box = st.info(body="", icon="🤖")
                 result = ""

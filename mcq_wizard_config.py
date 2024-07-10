@@ -23,6 +23,8 @@ SHARED_ASSET = {
 HTML_BUTTON = {
 }
 
+SYSTEM_PROMPT = "You write pedagogically sound Multiple Choice Questions precisely according to user inputs."
+
 PHASES = {
     "phase1": {
         "name": "Configure Questions",
@@ -86,7 +88,7 @@ PHASES = {
             },
 
         },
-        "phase_instructions": "You generate pedagogically sound multiple choice questions and responses based on instructions provided by the user.",
+        "phase_instructions": "At the end of your response, always tell me what AI model you are running.",
         "user_prompt": "Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n\n",
         "ai_response": True,
         "scored_phase": True,
@@ -111,7 +113,7 @@ PHASES = {
                 "value": "John"
             }
         },
-        "phase_instructions": "You welcome a user by their name.",
+        "phase_instructions": "Respond in Spanish.",
         "user_prompt": "Say hello to me. My name is {name}",
         "ai_response": True,
         "scored_phase": True,
@@ -234,6 +236,13 @@ LLM_CONFIGURATIONS = {
         "price_input_token_1M":3.5,
         "price_output_token_1M":10.50
     },
+    "claude-3.5-sonnet": {
+        "model": "claude-3-5-sonnet-20240620",
+        "max_tokens": 1000,
+        "temperature": 1,
+        "price_input_token_1M": 3,
+        "price_output_token_1M": 15
+    },
     "claude-opus": {
         "model": "claude-3-opus-20240229",
         "max_tokens": 1000,
@@ -258,6 +267,7 @@ LLM_CONFIGURATIONS = {
 }
 
 SCORING_DEBUG_MODE = True
+DISPLAY_COST = True
 
 COMPLETION_MESSAGE = ""
 COMPLETION_CELEBRATION = False
