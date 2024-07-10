@@ -27,7 +27,7 @@ HTML_BUTTON = {
     "button_text":"Read PDF"
 }
 
-SYSTEM_PROMPT = """You are providing feedback on a poster about Ebola with the following content: 
+SYSTEM_PROMPT = """You are providing feedback on a shared case study about Ebola with the following content: 
 # Ebola Virus Ecology and Transmission
 Ebola is a zoonotic disease. Zoonotic diseases can be passed between animals and humans. 
 
