@@ -176,7 +176,7 @@ def prompt_conditionals(prompt, user_input, phase_name=None):
             prompt += "Hint: [Hint]\n\n"
 
         prompt += "Here is the text: \n===============\n{topic_content}"
-        
+
 
     return prompt
     

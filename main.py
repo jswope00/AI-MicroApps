@@ -7,7 +7,7 @@ import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
-from config_ebola_case_study import *
+from mcq_wizard_config import *
 
 load_dotenv()
 
@@ -365,9 +365,11 @@ def main():
         if key in st.session_state:
             st.info(st.session_state[key], icon="🤖")
 
-        key = f"{PHASE_NAME}_ai_result"
-        if key in st.session_state and SCORING_DEBUG_MODE == True:
-            st.info(st.session_state[key], icon="🤖")
+
+        if SCORING_DEBUG_MODE:
+            key = f"{PHASE_NAME}_ai_score"
+            if key in st.session_state:
+                st.info("PHASE SCORE: " + str(st.session_state[key]), icon="🤖")
 
         key = f"{PHASE_NAME}_ai_response_revision_1"
         # If there are any revisions, enter the loop
@@ -392,13 +394,13 @@ def main():
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
                         ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                         ai_score = call_openai_completions(scoring_instructions, ai_feedback)
-                        st_store(ai_feedback, PHASE_NAME, "ai_result")
+                        st_store(ai_feedback, PHASE_NAME, "ai_response")
                         score = extract_score(ai_score)
                         st_store(score, PHASE_NAME, "ai_score")
                         #st.session_state[f'feedback_{i}'] = ai_feedback
                         st.session_state['score'] = score
-                        st.info(ai_feedback)
-                        st.info(score)
+                        st.info(body=ai_feedback, icon="🤖")
+                        st.info("PHASE SCORE: " + str(score))
                         if check_score(PHASE_NAME):
                             st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                             # Rerun Streamlit to refresh the page
@@ -411,7 +413,7 @@ def main():
                     ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     #st.session_state[f'feedback_{i}'] = ai_feedback
-                    st.info(ai_feedback)
+                    st.info(body=ai_feedback, icon="🤖")
                     
             else:
                 res_box = st.info(body="", icon="🤖")
@@ -429,7 +431,7 @@ def main():
 
         if PHASE_DICT.get("allow_revisions", False):
         #If revisions are allowed:
-            if f"{PHASE_NAME}_ai_result" in st.session_state:
+            if f"{PHASE_NAME}_ai_response" in st.session_state:
             #If an original answer has been generated, then the user can ask for revisions:
                 with st.expander("Revise this response?"):
                 #show the revision expander
