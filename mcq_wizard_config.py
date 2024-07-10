@@ -89,7 +89,38 @@ PHASES = {
         "phase_instructions": "You generate pedagogically sound multiple choice questions and responses based on instructions provided by the user.",
         "user_prompt": "Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n\n",
         "ai_response": True,
-        "scored_phase": False,
+        "scored_phase": True,
+        "minimum_score": 0,
+        "rubric": """
+            1. Questions
+                1 points - The user generates any questions
+                0 points - The user does not generate any questions
+        """,
+        "allow_revisions": True,
+        "max_revisions": 2,
+        "allow_skip": False,
+        "show_prompt": True,
+        "read_only_prompt": False
+    },
+    "phase2": {
+        "name": "Configure Questions",
+        "fields": {
+            "name": {
+                "type": "text_input",
+                "label": "What is your name?",
+                "value": "John"
+            }
+        },
+        "phase_instructions": "You welcome a user by their name.",
+        "user_prompt": "Say hello to me. My name is {name}",
+        "ai_response": True,
+        "scored_phase": True,
+        "minimum_score": 0,
+        "rubric": """
+            1. Name
+                1 points - The user gives you their name
+                0 points - The user does not give you their name. 
+        """,
         "allow_revisions": True,
         "max_revisions": 2,
         "allow_skip": False,
@@ -228,5 +259,5 @@ LLM_CONFIGURATIONS = {
 
 SCORING_DEBUG_MODE = True
 
-COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
+COMPLETION_MESSAGE = ""
 COMPLETION_CELEBRATION = False
