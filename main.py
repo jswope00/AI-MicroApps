@@ -7,7 +7,7 @@ import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
-from mcq_wizard_config import *
+from config_ebola_case_study import *
 
 load_dotenv()
 
@@ -330,8 +330,8 @@ def main():
 
         key = f"{PHASE_NAME}_phase_status"
 
+        user_prompt_template = PHASE_DICT.get("user_prompt", "")
         if PHASE_DICT.get("show_prompt", False):
-            user_prompt_template = PHASE_DICT.get("user_prompt", "")               
             with st.expander("View/edit full prompt"):
                 formatted_user_prompt = st.text_area(
                     label="Prompt",
