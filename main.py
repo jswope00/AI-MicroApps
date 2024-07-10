@@ -11,7 +11,24 @@ from streamlit_extras.let_it_rain import rain
 
 load_dotenv()
 
-config_file = os.getenv("CONFIG_FILE")
+
+# Define templates
+templates = {"ai_assessment": "config", "mcq_wizard": "mcq_wizard_config", "msc_tutor": "config_msct_tutor",
+             "med_guide": "medguide_config", "question_feedback": "question_feedback_config", "case_study_analysis": "config_ebola_case_study"}
+
+selected_template = st.sidebar.selectbox("Select template", templates.keys())
+
+if "template" not in st.session_state or st.session_state.template != selected_template:
+    st.session_state.template = selected_template
+    st.query_params["template"] = selected_template
+    # Reset session state variables
+    st.session_state['additional_prompt'] = ""
+    st.session_state['chat_history'] = []
+    st.session_state['CURRENT_PHASE'] = 0
+    st.session_state['TOTAL_PRICE'] = 0
+
+config_file = templates[selected_template]
+
 
 if config_file:
     config_module = importlib.import_module(config_file)
@@ -38,14 +55,6 @@ function_map = {
     "slider": st.slider,
     "number_input": st.number_input
 }
-
-if 'additional_prompt' not in st.session_state:
-    st.session_state['additional_prompt'] = ""
-for i in range(len(PHASES.keys())):
-    if f'feedback_{i}' not in st.session_state:
-        st.session_state[f'feedback_{i}'] = ""
-if 'chat_history' not in st.session_state:
-    st.session_state['chat_history'] = []
 
 
 def build_field(phase_name, fields):

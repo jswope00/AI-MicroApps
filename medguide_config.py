@@ -36,7 +36,7 @@ HTML_BUTTON = {
     "button_text":"Read PDF"
 }
 
-SYSTEM_INSTRUCTIONS = "You are a medical assistant that follows instructions."
+SYSTEM_PROMPT = "You are a medical assistant that follows instructions."
 
 PHASES = {
     "phase1": {
@@ -73,7 +73,7 @@ PHASES = {
             }
         },
         "phase_instructions": "The user will provide you the incorrect fact from your last message. Assess if they have found the incorrect fact. If they have found the incorrect fact, tell them they are correct and tell them why the fact is wrong. If the user has not identified the incorrect fact, ask them to try again.",
-        "user_prompt": "My name is {name} and here my background: {background} ",
+        "user_prompt": "My name is {name}",
         "scored_phase": False,
         "allow_skip": True,
         "scored_phase": True,
@@ -169,4 +169,4 @@ LLM_CONFIGURATIONS = {
 }
 
 
-
+DISPLAY_COST = True

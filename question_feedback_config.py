@@ -31,7 +31,7 @@ PHASES = {
     "phase1": {
         "name": "Feedback",
         "fields": {
-                "welcome": {
+            "welcome": {
                 "type": "text_area",
                 "label": "Question and answer Text:",
                 "height": 200,
@@ -51,7 +51,7 @@ PHASES = {
 
         },
         "phase_instructions": "",
-        "user_prompt": "Please provide feedback for the following question: {question}",
+        "user_prompt": "Please provide feedback for the following question: ",
         "allow_skip": True,
     }
  
@@ -138,5 +138,4 @@ LLM_CONFIGURATIONS = {
     }
 }
 
-
-
+DISPLAY_COST = True
