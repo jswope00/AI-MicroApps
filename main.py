@@ -7,7 +7,7 @@ import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
-from config import *
+from mcq_wizard_config import *
 
 load_dotenv()
 
@@ -23,7 +23,10 @@ function_map = {
     "button": st.button,
     "radio": st.radio,
     "markdown": st.markdown,
-    "selectbox": st.selectbox
+    "selectbox": st.selectbox,
+    "checkbox": st.checkbox,
+    "slider": st.slider,
+    "number_input": st.number_input
 }
 
 if 'revision_count' not in st.session_state:
@@ -41,11 +44,15 @@ def build_field(phase_name, fields):
         field_label = field.get("label", "")
         field_body = field.get("body", "")
         field_value = field.get("value", "")
+        field_index = field.get("index",None)
         field_max_chars = field.get("max_chars", None)
         field_help = field.get("help", "")
         field_on_click = field.get("on_click", None)
         field_options = field.get("options", [])
         field_horizontal = field.get("horizontal", False)
+        field_min_value = field.get("min_value",None)
+        field_max_value = field.get("max_value",None)
+        field_step = field.get("step",None)
         field_height = field.get("height", None)
         field_unsafe_html = field.get("unsafe_allow_html", False)
         field_placeholder = field.get("placeholder", "")
@@ -57,6 +64,8 @@ def build_field(phase_name, fields):
             kwargs['body'] = field_body
         if field_value:
             kwargs['value'] = field_value
+        if field_index:
+            kwargs['index'] = field_index
         if field_options:
             kwargs['options'] = field_options
         if field_max_chars:
@@ -67,6 +76,12 @@ def build_field(phase_name, fields):
             kwargs['on_click'] = field_on_click
         if field_horizontal:
             kwargs['horizontal'] = field_horizontal
+        if field_min_value:
+            kwargs['min_value'] = field_min_value
+        if field_max_value:
+            kwargs['max_value'] = field_max_value
+        if field_step:
+            kwargs['step'] = field_step
         if field_height:
             kwargs['height'] = field_height
         if field_unsafe_html:
@@ -167,10 +182,8 @@ def call_openai_completions(phase_instructions, user_prompt):
                 model=llm_configuration["model"],
                 max_tokens=llm_configuration["max_tokens"],
                 temperature=llm_configuration["temperature"],
+                system=phase_instructions,
                 messages=[
-                    {"role": "user", "content": [{"type": "text",
-                                                  "text": "Hello. I will give you some instructions via the assistant prompt next. "}]},
-                    {"role": "assistant", "content": [{"type": "text", "text": phase_instructions}]},
                     {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
                 ]
             )
@@ -188,7 +201,9 @@ def call_openai_completions(phase_instructions, user_prompt):
 
 
 def format_user_prompt(prompt, user_input):
-    return prompt.format(**user_input)
+    prompt = prompt_conditionals(prompt, user_input)
+    formatted_user_prompt = prompt.format(**user_input)
+    return formatted_user_prompt
 
 
 def st_store(input, phase_name, phase_key, field_key=""):
@@ -312,6 +327,19 @@ def main():
 
         key = f"{PHASE_NAME}_phase_status"
 
+        if PHASE_DICT.get("show_prompt", False):
+            user_prompt_template = PHASE_DICT.get("user_prompt", "")               
+            with st.expander("View/edit full prompt"):
+                formatted_user_prompt = st.text_area(
+                    label="Prompt",
+                    height=100,
+                    max_chars=50000,
+                    value=format_user_prompt(user_prompt_template, user_input),
+                    disabled=PHASE_DICT.get("read_only_prompt",False)
+                    )
+        else:
+            formatted_user_prompt = format_user_prompt(user_prompt_template, user_input)
+
         if PHASE_DICT.get("no_submission", False):
             if key not in st.session_state:
                 st.session_state[key] = True
@@ -344,7 +372,6 @@ def main():
 
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
             user_prompt_template = PHASE_DICT.get("user_prompt", "")
-            formatted_user_prompt = format_user_prompt(user_prompt_template, user_input)
 
             if PHASE_DICT.get("ai_response", True):
                 if PHASE_DICT.get("scored_phase", False):
@@ -379,6 +406,8 @@ def main():
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
 
+
+        
 
         if PHASE_DICT.get("allow_revisions", False):
             if f'feedback_{i}' in st.session_state and st.session_state[f'feedback_{i}']:
