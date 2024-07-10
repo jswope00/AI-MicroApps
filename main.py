@@ -121,19 +121,21 @@ def build_field(phase_name, fields):
 def call_openai_completions(phase_instructions, user_prompt):
     selected_llm = st.session_state['selected_llm']
     llm_configuration = st.session_state['llm_config']
-
+    chat_history = st.session_state["chat_history"]
     if selected_llm in ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]:
+        message_history = []
+        if len(chat_history)>0:
+            for history in chat_history:
+                user_content = history["user"]
+                assistant_content = history["assistant"]
+                message_history.extend([{"role":"user","content":user_content},{"role":"assistant","content":assistant_content}])
         try:
-            # Prepare chat history
-            messages = [{"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions}]
-            for entry in st.session_state['chat_history']:
-                messages.append({"role": "system", "content": entry['system']})
-                messages.append({"role": "user", "content": entry['user']})
-                messages.append({"role": "assistant", "content": entry['ai']})
-            messages.append({"role": "user", "content": user_prompt})
             response = openai.chat.completions.create(
                 model=llm_configuration["model"],
-                messages= messages,
+                messages= message_history+[
+                    {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
+                    {"role": "user", "content": user_prompt}
+                ],
                 max_tokens=llm_configuration.get("max_tokens", 1000),
                 temperature=llm_configuration.get("temperature", 1),
                 top_p=llm_configuration.get("top_p", 1),
@@ -305,9 +307,8 @@ def main():
         with st.sidebar:
             st.subheader("Chat History")
             for history in st.session_state['chat_history']:
-                st.markdown(f"**System:** {history['system']}")
                 st.markdown(f"**User:** {history['user']}")
-                st.markdown(f"**AI:** {history['ai']}")
+                st.markdown(f"**AI:** {history['assistant']}")
                 st.markdown("---")
 
     if 'CURRENT_PHASE' not in st.session_state:
@@ -416,9 +417,8 @@ def main():
                         score = extract_score(ai_score)
                         st_store(score, PHASE_NAME, "ai_score")
                         st.session_state['chat_history'].append({
-                            "system": SYSTEM_PROMPT + "\n" + phase_instructions,
                             "user": formatted_user_prompt,
-                            "ai": ai_feedback
+                            "assistant": ai_feedback
                         })
                         #st.session_state[f'feedback_{i}'] = ai_feedback
                         st.session_state['score'] = score
@@ -436,9 +436,8 @@ def main():
                     ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     st.session_state['chat_history'].append({
-                        "system": SYSTEM_PROMPT + "\n" + phase_instructions,
                         "user": formatted_user_prompt,
-                        "ai": ai_feedback
+                        "assistant": ai_feedback
                     })
                     #st.session_state[f'feedback_{i}'] = ai_feedback
                     st.info(body=ai_feedback, icon="🤖")
@@ -453,9 +452,8 @@ def main():
                     res_box.info(body=result, icon="🤖")
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
                 st.session_state['chat_history'].append({
-                    "system": SYSTEM_PROMPT + "\n" + phase_instructions,
                     "user": formatted_user_prompt,
-                    "ai": hard_coded_message
+                    "assistant": hard_coded_message
                 })
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
 
@@ -490,9 +488,8 @@ def main():
                                 #Store the response in a special revision field
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(st.session_state[f"{PHASE_NAME}_revision_count"]))
                                 st.session_state['chat_history'].append({
-                                    "system": SYSTEM_PROMPT + "\n" + phase_instructions,
                                     "user": formatted_user_prompt,
-                                    "ai": ai_feedback
+                                    "assistant": ai_feedback
                                 })
                                 st.rerun()
                     else:
