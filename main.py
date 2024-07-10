@@ -2,14 +2,24 @@ import openai
 import google.generativeai as generativeai
 import anthropic
 import os
+import importlib
 from dotenv import load_dotenv
 import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
-from config import *
 
 load_dotenv()
+
+config_file = os.getenv("CONFIG_FILE")
+
+if config_file:
+    config_module = importlib.import_module(config_file)
+    for attr in dir(config_module):
+        if not attr.startswith("__"):
+            globals()[attr] = getattr(config_module, attr)
+else:
+    from config import *
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 gemini_api_key = os.getenv('GOOGLE_API_KEY')
