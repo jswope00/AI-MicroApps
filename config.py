@@ -30,6 +30,8 @@ HTML_BUTTON = {
     "button_text":"Read PDF"
 }
 
+SYSTEM_PROMPT = "You are an AI assistant who evaluates the student submissions."
+
 PHASES = {
     "phase1": {
         "name": "Introduction",
@@ -51,7 +53,9 @@ PHASES = {
         "custom_response": "Welcome {name} and Thanks for providing your background in the study as {background}.",
         "scored_phase": False,
         "allow_revisions": False,
-        "allow_skip": True
+        "allow_skip": True,
+        "show_prompt": True,
+        "read_only_prompt": False
     },
     "phase2": {
         "name": "Article Overview",
@@ -67,8 +71,8 @@ PHASES = {
                 "value": "The main objective of this study is to identify which factors in video production have the most significant impact on student engagement in online educational videos. Specifically, the researchers aim to understand how elements like video length, speaking rate, production style, and instructor visibility affect how long students watch videos and how they perform on subsequent problem-solving tasks."
             }
         },
-        "phase_instructions": "Address user by {name}. Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
-        "user_prompt": "Here is the main topic of the research paper: {topic} and the study's primary goal is: {research_question}. User is {name}",
+        "phase_instructions": "Address user by name. Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
+        "user_prompt": "Here is the main topic of the research paper: {topic} and the study's primary goal is: {research_question}.",
         "ai_response": True,
         "scored_phase": True,
         "minimum_score": 2,
@@ -83,7 +87,10 @@ PHASES = {
                 0 points - Does not mention either key aspect of the study
         """,
         "allow_revisions": True,
-        "allow_skip": True
+        "max_revisions": 3,
+        "allow_skip": True,
+        "show_prompt": True,
+        "read_only_prompt": False
     },
     "phase3": {
         "name": "Methodology Analysis",
@@ -114,7 +121,9 @@ PHASES = {
                 0 points - Does not mention the scale of data collection
         """,
         "allow_revisions": False,
-        "allow_skip": True
+        "allow_skip": True,
+        "show_prompt": True,
+        "read_only_prompt": False
     },
     "phase4": {
         "name": "Results and Implications",
@@ -147,7 +156,10 @@ PHASES = {
                 0 points - No accurate findings mentioned
         """,
         "allow_revisions": True,
-        "allow_skip": True
+        "max_revisions": 3,
+        "allow_skip": True,
+        "show_prompt": False,
+        "read_only_prompt": False
     }
 }
 
@@ -234,6 +246,8 @@ LLM_CONFIGURATIONS = {
 
 SCORING_DEBUG_MODE = True
 MAX_REVISIONS = 3
+
+DISPLAY_COST = True
 
 COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
 COMPLETION_CELEBRATION = False

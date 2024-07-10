@@ -7,7 +7,7 @@ import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
-from mcq_wizard_config import *
+from config import *
 
 load_dotenv()
 
@@ -34,6 +34,8 @@ if 'additional_prompt' not in st.session_state:
 for i in range(len(PHASES.keys())):
     if f'feedback_{i}' not in st.session_state:
         st.session_state[f'feedback_{i}'] = ""
+if 'chat_history' not in st.session_state:
+    st.session_state['chat_history'] = []
 
 
 def build_field(phase_name, fields):
@@ -122,12 +124,16 @@ def call_openai_completions(phase_instructions, user_prompt):
 
     if selected_llm in ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]:
         try:
+            # Prepare chat history
+            messages = [{"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions}]
+            for entry in st.session_state['chat_history']:
+                messages.append({"role": "system", "content": entry['system']})
+                messages.append({"role": "user", "content": entry['user']})
+                messages.append({"role": "assistant", "content": entry['ai']})
+            messages.append({"role": "user", "content": user_prompt})
             response = openai.chat.completions.create(
                 model=llm_configuration["model"],
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
-                    {"role": "user", "content": user_prompt}
-                ],
+                messages= messages,
                 max_tokens=llm_configuration.get("max_tokens", 1000),
                 temperature=llm_configuration.get("temperature", 1),
                 top_p=llm_configuration.get("top_p", 1),
@@ -200,9 +206,13 @@ def call_openai_completions(phase_instructions, user_prompt):
 
 
 def format_user_prompt(prompt, user_input, phase_name=None):
-    prompt = prompt_conditionals(prompt, user_input, phase_name)
-    formatted_user_prompt = prompt.format(**user_input)
-    return formatted_user_prompt
+    try:
+        prompt = prompt_conditionals(prompt, user_input, phase_name)
+        formatted_user_prompt = prompt.format(**user_input)
+        return formatted_user_prompt
+    except:
+        formatted_user_prompt = prompt.format(**user_input)
+        return formatted_user_prompt
 
 
 def st_store(input, phase_name, phase_key, field_key=""):
@@ -291,6 +301,14 @@ def main():
 
         if DISPLAY_COST:
             st.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
+
+        with st.sidebar:
+            st.subheader("Chat History")
+            for history in st.session_state['chat_history']:
+                st.markdown(f"**System:** {history['system']}")
+                st.markdown(f"**User:** {history['user']}")
+                st.markdown(f"**AI:** {history['ai']}")
+                st.markdown("---")
 
     if 'CURRENT_PHASE' not in st.session_state:
         st.session_state['CURRENT_PHASE'] = 0
@@ -397,6 +415,11 @@ def main():
                         st_store(ai_feedback, PHASE_NAME, "ai_response")
                         score = extract_score(ai_score)
                         st_store(score, PHASE_NAME, "ai_score")
+                        st.session_state['chat_history'].append({
+                            "system": SYSTEM_PROMPT + "\n" + phase_instructions,
+                            "user": formatted_user_prompt,
+                            "ai": ai_feedback
+                        })
                         #st.session_state[f'feedback_{i}'] = ai_feedback
                         st.session_state['score'] = score
                         st.info(body=ai_feedback, icon="🤖")
@@ -412,6 +435,11 @@ def main():
                 else:
                     ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
+                    st.session_state['chat_history'].append({
+                        "system": SYSTEM_PROMPT + "\n" + phase_instructions,
+                        "user": formatted_user_prompt,
+                        "ai": ai_feedback
+                    })
                     #st.session_state[f'feedback_{i}'] = ai_feedback
                     st.info(body=ai_feedback, icon="🤖")
                     
@@ -424,6 +452,11 @@ def main():
                     result += char
                     res_box.info(body=result, icon="🤖")
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
+                st.session_state['chat_history'].append({
+                    "system": SYSTEM_PROMPT + "\n" + phase_instructions,
+                    "user": formatted_user_prompt,
+                    "ai": hard_coded_message
+                })
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
 
 
@@ -456,6 +489,11 @@ def main():
                                 ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                                 #Store the response in a special revision field
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(st.session_state[f"{PHASE_NAME}_revision_count"]))
+                                st.session_state['chat_history'].append({
+                                    "system": SYSTEM_PROMPT + "\n" + phase_instructions,
+                                    "user": formatted_user_prompt,
+                                    "ai": ai_feedback
+                                })
                                 st.rerun()
                     else:
                         st.warning("Revision limits exceeded")
