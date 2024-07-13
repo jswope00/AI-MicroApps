@@ -13,7 +13,7 @@ load_dotenv()
 
 
 # Define templates
-templates = {"Demo 1": "config_demo1", "ai_assessment": "config", "mcq_wizard": "mcq_wizard_config", "msc_tutor": "config_msct_tutor",
+templates = {"Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "mcq_wizard": "mcq_wizard_config", "msc_tutor": "config_msct_tutor",
              "med_guide": "medguide_config", "question_feedback": "question_feedback_config", "case_study_analysis": "config_ebola_case_study"}
 
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
