@@ -13,7 +13,7 @@ load_dotenv()
 
 
 # Define templates
-templates = {"Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "mcq_wizard": "mcq_wizard_config", "msc_tutor": "config_msct_tutor",
+templates = {"Image Quiz": "config_image_quiz", "Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "mcq_wizard": "mcq_wizard_config", "msc_tutor": "config_msct_tutor",
              "med_guide": "medguide_config", "question_feedback": "question_feedback_config", "case_study_analysis": "config_ebola_case_study"}
 
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
@@ -53,7 +53,8 @@ function_map = {
     "selectbox": st.selectbox,
     "checkbox": st.checkbox,
     "slider": st.slider,
-    "number_input": st.number_input
+    "number_input": st.number_input,
+    "image": st.image
 }
 
 
@@ -75,6 +76,8 @@ def build_field(phase_name, fields):
         field_height = field.get("height", None)
         field_unsafe_html = field.get("unsafe_allow_html", False)
         field_placeholder = field.get("placeholder", "")
+        field_image = field.get("image", "")
+        field_caption = field.get("caption", "")
 
         kwargs = {}
         if field_label:
@@ -107,6 +110,11 @@ def build_field(phase_name, fields):
             kwargs['unsafe_allow_html'] = field_unsafe_html
         if field_placeholder:
             kwargs['placeholder'] = field_placeholder
+        if field_image:
+            kwargs['image'] = field_image
+        if field_caption:
+            kwargs['caption'] = field_caption
+
 
         key = f"{phase_name}_phase_status"
 
@@ -137,10 +145,14 @@ def build_field(phase_name, fields):
             user_input[field_key] = my_input_function(**kwargs)
 
 
-def call_openai_completions(phase_instructions, user_prompt):
+def call_openai_completions(phase_instructions, user_prompt, image_url=None):
     selected_llm = st.session_state['selected_llm']
     llm_configuration = st.session_state['llm_config']
     chat_history = st.session_state["chat_history"]
+
+    if image_url and selected_llm not in ["gpt-4-turbo", "gpt-4o"]:
+        return "ERROR: This model does not support image recognition"
+
     message_history = []
     message_history_gemini = []
     if len(chat_history) > 0:
@@ -151,14 +163,22 @@ def call_openai_completions(phase_instructions, user_prompt):
                 [{"role": "user", "content": user_content}, {"role": "assistant", "content": assistant_content}])
             message_history_gemini.extend(
                 [{"role": "user", "parts": [user_content]}, {"role": "model", "parts": [assistant_content]}])
+    if image_url:
+        messages_openai = [
+                        {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
+                        {"role": "user", "content": [{"type": "image_url", "image_url": {"url": image_url}}]},
+                        {"role": "user", "content": user_prompt}
+                    ]
+    else:
+        messages_openai = [
+                {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
+                {"role": "user", "content": user_prompt}
+            ]
     if selected_llm in ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]:
         try:
             response = openai.chat.completions.create(
                 model=llm_configuration["model"],
-                messages= message_history+[
-                    {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
-                    {"role": "user", "content": user_prompt}
-                ],
+                messages= message_history+messages_openai,
                 max_tokens=llm_configuration.get("max_tokens", 1000),
                 temperature=llm_configuration.get("temperature", 1),
                 top_p=llm_configuration.get("top_p", 1),
@@ -289,6 +309,13 @@ def celebration():
         falling_speed=5,
         animation_length=1,
     )
+
+# Function to find the image URL
+def find_image_url(fields):
+    for key, value in fields.items():
+        if 'image' in value:
+            return value['image']
+    return None
 
 
 def main():
@@ -426,12 +453,16 @@ def main():
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
             user_prompt_template = PHASE_DICT.get("user_prompt", "")
 
+            image_url = find_image_url(PHASE_DICT.get('fields', {}))
+
             if PHASE_DICT.get("ai_response", True):
                 if PHASE_DICT.get("scored_phase", False):
                     if "rubric" in PHASE_DICT:
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
+                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_url)
+                        st.info(body=ai_feedback, icon="🤖")
                         ai_score = call_openai_completions(scoring_instructions, ai_feedback)
+                        st.info(ai_score, icon="🤖")
                         st_store(ai_feedback, PHASE_NAME, "ai_response")
                         st_store(ai_score, PHASE_NAME, "ai_score_debug")
                         score = extract_score(ai_score)
@@ -451,7 +482,7 @@ def main():
                     else:
                         st.error('You need to include a rubric for a scored phase', icon="🚨")
                 else:
-                    ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
+                    ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_url)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     st.session_state['chat_history'].append({
                         "user": formatted_user_prompt,
