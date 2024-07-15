@@ -382,6 +382,8 @@ def main():
             if key not in st.session_state:
                 st.session_state[key] = True
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+                st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+                st.rerun()
 
         if key not in st.session_state:
             st.session_state[key] = False
@@ -403,11 +405,6 @@ def main():
         key = f"{PHASE_NAME}_ai_score_debug"
         if key in st.session_state:
             st.info(st.session_state[key], icon="🤖")
-
-        if SCORING_DEBUG_MODE:
-            key = f"{PHASE_NAME}_ai_score"
-            if key in st.session_state:
-                st.info("PHASE SCORE: " + str(st.session_state[key]), icon="🤖")
 
         key = f"{PHASE_NAME}_ai_response_revision_1"
         # If there are any revisions, enter the loop
@@ -484,7 +481,11 @@ def main():
                             i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
                         f"{list(PHASES.keys())[i + 1]}_phase_completed", False))
 
-                if is_latest_completed_phase:
+                # Check if it's not the last phase and the phase wasn't skipped
+                is_not_last_phase = PHASE_NAME != final_phase_name
+                is_not_skipped = not st.session_state.get(f"{PHASE_NAME}_skipped", False)
+
+                if is_latest_completed_phase and is_not_last_phase and is_not_skipped:
                     with st.expander("Revise this response?"):
                         max_revisions = PHASE_DICT.get("max_revisions", 10)
                         if f"{PHASE_NAME}_revision_count" not in st.session_state:
@@ -512,11 +513,11 @@ def main():
                                 st.rerun()
                         else:
                             st.warning("Revision limits exceeded")
-                else:
-                    st.info("Revisions are no longer available for this phase as you have moved on to the next phase.")
 
         if skip_button:
             skip_phase(PHASE_NAME)
+            st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+            st.session_state[f"{PHASE_NAME}_skipped"] = True
             st.rerun()
 
         if final_key in st.session_state and i == st.session_state['CURRENT_PHASE']:
