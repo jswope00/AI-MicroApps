@@ -178,7 +178,9 @@ Machines hum, men sigh.""",
         """,
         "minimum_score": 2,
         "show_prompt": True,
-        "read_only_prompt": False
+        "read_only_prompt": False,
+        "allow_revisions": True,
+        "max_revisions": 2,
     }
 
 }
