@@ -386,7 +386,7 @@ def main():
         if key not in st.session_state:
             st.session_state[key] = False
 
-        if not st.session_state[key] and final_key not in st.session_state:
+        if not st.session_state.get(f"{PHASE_NAME}_phase_completed", False):
             with st.container():
                 col1, col2 = st.columns(2)
                 with col1:
@@ -400,6 +400,9 @@ def main():
         if key in st.session_state:
             st.info(st.session_state[key], icon="🤖")
 
+        key = f"{PHASE_NAME}_ai_score_debug"
+        if key in st.session_state:
+            st.info(st.session_state[key], icon="🤖")
 
         if SCORING_DEBUG_MODE:
             key = f"{PHASE_NAME}_ai_score"
@@ -430,19 +433,18 @@ def main():
                         ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
                         ai_score = call_openai_completions(scoring_instructions, ai_feedback)
                         st_store(ai_feedback, PHASE_NAME, "ai_response")
+                        st_store(ai_score, PHASE_NAME, "ai_score_debug")
                         score = extract_score(ai_score)
                         st_store(score, PHASE_NAME, "ai_score")
                         st.session_state['chat_history'].append({
                             "user": formatted_user_prompt,
                             "assistant": ai_feedback
                         })
-                        #st.session_state[f'feedback_{i}'] = ai_feedback
+                        st.session_state["ai_score"] = ai_score
                         st.session_state['score'] = score
-                        st.info(body=ai_feedback, icon="🤖")
-                        st.info("PHASE SCORE: " + str(score))
                         if check_score(PHASE_NAME):
                             st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
-                            # Rerun Streamlit to refresh the page
+                            st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                             st.rerun()
                         else:
                             st.warning("You haven't passed. Please try again.")
@@ -455,9 +457,9 @@ def main():
                         "user": formatted_user_prompt,
                         "assistant": ai_feedback
                     })
-                    #st.session_state[f'feedback_{i}'] = ai_feedback
-                    st.info(body=ai_feedback, icon="🤖")
-                    
+                    st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+                    st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+                    st.rerun()
             else:
                 res_box = st.info(body="", icon="🤖")
                 result = ""
@@ -472,45 +474,46 @@ def main():
                     "assistant": hard_coded_message
                 })
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
-
-
-        
+                st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+                st.rerun()
 
         if PHASE_DICT.get("allow_revisions", False):
-        #If revisions are allowed:
             if f"{PHASE_NAME}_ai_response" in st.session_state:
-            #If an original answer has been generated, then the user can ask for revisions:
-                with st.expander("Revise this response?"):
-                #show the revision expander
-                    max_revisions = PHASE_DICT.get("max_revisions", 10)
-                    if f"{PHASE_NAME}_revision_count" not in st.session_state:
-                    #If the variable doesn't exist, initialize it
-                        st_store(0, PHASE_NAME, "revision_count")
-                    if st.session_state[f"{PHASE_NAME}_revision_count"] < max_revisions:
-                    #If the user still has revisions left, show the revision field and button. 
-                            st.session_state['additional_prompt'] = st.text_input("Enter additional prompt", value="", key= PHASE_NAME)
+                # Check if the current phase is the latest completed phase
+                is_latest_completed_phase = i == st.session_state['CURRENT_PHASE'] or (
+                            i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
+                        f"{list(PHASES.keys())[i + 1]}_phase_completed", False))
+
+                if is_latest_completed_phase:
+                    with st.expander("Revise this response?"):
+                        max_revisions = PHASE_DICT.get("max_revisions", 10)
+                        if f"{PHASE_NAME}_revision_count" not in st.session_state:
+                            st_store(0, PHASE_NAME, "revision_count")
+                        if st.session_state[f"{PHASE_NAME}_revision_count"] < max_revisions:
+                            st.session_state['additional_prompt'] = st.text_input("Enter additional prompt", value="",
+                                                                                  key=PHASE_NAME)
                             if st.button("Revise", key=f"revise_{i}"):
-                            #If the user asks for a revision...
-                                #increment the revision counter
                                 st.session_state[f"{PHASE_NAME}_revision_count"] += 1
-                                #get all the normal instructions and prompts
+
                                 phase_instructions = PHASE_DICT.get("phase_instructions", "")
                                 user_prompt_template = PHASE_DICT.get("user_prompt", "")
                                 formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME)
-                                #add the additional prompt to the end
+
                                 formatted_user_prompt += st.session_state['additional_prompt']
-                                #Call the AI and get a response
+
                                 ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
-                                #Store the response in a special revision field
-                                st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(st.session_state[f"{PHASE_NAME}_revision_count"]))
+
+                                st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
+                                    st.session_state[f"{PHASE_NAME}_revision_count"]))
                                 st.session_state['chat_history'].append({
                                     "user": formatted_user_prompt,
                                     "assistant": ai_feedback
                                 })
                                 st.rerun()
-                    else:
-                        st.warning("Revision limits exceeded")
-
+                        else:
+                            st.warning("Revision limits exceeded")
+                else:
+                    st.info("Revisions are no longer available for this phase as you have moved on to the next phase.")
 
         if skip_button:
             skip_phase(PHASE_NAME)
