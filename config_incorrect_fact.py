@@ -1,27 +1,9 @@
 
-APP_TITLE = "Guided Critical Analysis"
-APP_INTRO = """In this guided case study, we'll both read the same case study. Then, you'll be guided through an analysis of the paper. Let's begin by reading the paper!
-
-This is a **DEMO**, so sample answers are pre-filled and the article is one that is highly familiar to people.
+APP_TITLE = "Find the Incorrect Fact"
+APP_INTRO = """In this demonstration, the AI will generate mostly factual information about a topic, with one incorrect fact. It is your job to find the incorrect fact. 
 """
 
-APP_HOW_IT_WORKS = """
- This is an **AI-Tutored Rubric exercise** that acts as a tutor guiding a student through a shared asset, like an article. It uses the OpenAI Assistants API with GPT-4. The **questions and rubric** are defined by a **faculty**. The **feedback and the score** are generarated by the **AI**. 
-
-It can:
-
-1. provide feedback on a student's answers to questions about an asset
-2. roughly "score" a student to determine if they can move on to the next section.  
-
-Scoring is based on a faculty-defined rubric on the backend. These rubrics can be simple (i.e. "full points if the student gives a thoughtful answer") or specific with different criteria and point thresholds. The faculty also defines a minimum pass threshold for each question. The threshold could be as low as zero points to pass any answer, or it could be higher. 
-
-Using AI to provide feedback and score like this is a very experimental process. Some things to note: 
-
- - AIs make mistakes. Users are encourage to skip a question if the AI is not understanding them or giving good feedback. 
- - The AI might say things that it can't do, like "Ask me anything about the article". I presume further refinement can reduce these kinds of responses. 
- - Scoring is highly experimental. At this point, it should mainly be used to gauge if a user gave an approximately close answer to what the rubric suggests. It is not recommended to show the user the numeric score. 
- - Initial testing indicates that the AI is a very easy grader. This is probably good in this experiment, and it may be refined with different prompting. 
- """
+APP_HOW_IT_WORKS = ""
 
 COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
 COMPLETION_CELEBRATION = False
@@ -32,51 +14,45 @@ SHARED_ASSET = {
 }
 
 HTML_BUTTON = {
-    "url":"http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf",
-    "button_text":"Read PDF"
 }
 
-SYSTEM_PROMPT = "You are a medical assistant that follows instructions."
+SYSTEM_PROMPT = ""
 
 PHASES = {
     "phase1": {
-        "name": "Choose a Disease",
+        "name": "Choose a Topic",
         "fields": {
                 "welcome": {
                 "type": "markdown",
-                "body": "Welcome! Enter a disease to get started.",
+                "body": "Welcome! Enter a topic to get started.",
                 "unsafe_allow_html": True
             },
             "name_hard_code": {
                 "type": "text_input",
-                "label": "Choose your disease:",
+                "label": "Choose your topic:",
                 "value": "Strep Throat"
             },
         },
-        "phase_instructions": "The user will provide you with the name of a disease. If the user enters a valid disease, then generate a two paragraph patient guide for understanding that disease. Your guide should be mostly factual, but include one sentence with an incorrect fact. If the user does not enter a valid disease, ask them to try again with a valid disease.",
-        "user_prompt": "Strep Throat",
+        "phase_instructions": "",
+        "user_prompt": "Please generate two paragraphs of information about the following topic: {name_hard_code}. Your information should all be factual, except you should sneak one incorrect fact in there that sounds plausible but is in fact incorrect. Do not tell me what the incorrect fact is. ",
         "allow_skip": False,
-        "scored_phase": True,
-        "rubric": """
-            1. Valid Disease
-                1 points - The user has input a valid disease
-                0 points - The user has not input a valid disease
-        """,
-        "minimum_score": 1,
+        "scored_phase": False,
     },
     "phase2": {
         "name": "Find the Incorrect Fact.",
         "fields": {
-            "name": {
+            "incorrect_fact": {
                 "type": "text_input",
                 "label": "Which fact is incorrect?",
             }
         },
         "phase_instructions": "The user will provide you the incorrect fact from your last message. Assess if they have found the incorrect fact. If they have found the incorrect fact, tell them they are correct and tell them why the fact is wrong. If the user has not identified the incorrect fact, ask them to try again.",
-        "user_prompt": "My name is {name}",
+        "user_prompt": "{incorrect_fact}",
         "scored_phase": False,
         "allow_skip": True,
         "scored_phase": True,
+        "allow_revisions": True,
+        "max_revisions": 4,
         "rubric": """
             1. Correct Identification
                 1 points - The user has correctly identified the incorrect fact. 
@@ -87,7 +63,7 @@ PHASES = {
  
 }
 
-selected_llm = "gpt-3.5-turbo"
+selected_llm = "gpt-4o"
 
 
 LLM_CONFIGURATIONS = {
