@@ -14,7 +14,7 @@ load_dotenv()
 
 # Define templates
 templates = {"Case Study: Ebola": "config_ebola_case_study", "Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "MCQ Generator": "config_mcq_generator", "Debate an AI": "config_debate", "mSCT Tutor": "config_msct_tutor",
-             "Find the Incorrect Fact": "config_incorrect_fact", "Question Feedback Generator": "config_question_feedback", "Image Quiz": "config_image_quiz"}
+             "Find the Incorrect Fact": "config_incorrect_fact", "Alt Text Generator": "config_alt_text", "SOAP Notes Scoring": "config_soap", "Question Feedback Generator": "config_question_feedback", "Image Quiz": "config_image_quiz"}
 
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
 

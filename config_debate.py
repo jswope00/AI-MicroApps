@@ -81,6 +81,7 @@ PHASES = {
                 #"type": "text_input",
                 "options": ['Telemedicine: I believe that the rise in telemedicine will improve health outcomes.', 'Telemedicine: I believe that the rise in telemedicine will harm health outcomes.', 'Wearables: I believe the benefits of wearable health technologies outweigh the risk of data breaches', 'Wearables: I believe the risk of data breaches outweigh the benefits of wearable health technologies.', 'Health Data Ownership: I believe that patients should have autonomy and privacy over their personal information.', 'Health Data Ownership: I believe that health information can be shared in order to improve individual and public health outcomes.'],
                 #"options": ['Countries should try as much as possible to balance their budgets and avoid debt', 'Countries should prioritize growth over balanced budgets'],
+                #"options": ['Horses are better', 'Ponies are better']
             }
         },
         "phase_instructions": "The user will provide you a topic and their stance on the topic. Take the opposite stance, and generate an introductory statement for the debate. Ensure your statement is clear, evidence-based, and structured to provoke thoughtful discourse. End your statement with 'Why did you choose the stance you chose?'",
