@@ -14,21 +14,27 @@ load_dotenv()
 
 # Define templates
 templates = {"Case Study: Ebola": "config_ebola_case_study", "Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "MCQ Generator": "config_mcq_generator", "Debate an AI": "config_debate", "mSCT Tutor": "config_msct_tutor",
-             "Find the Incorrect Fact": "config_incorrect_fact", "Question Feedback Generator": "config_question_feedback", "Image Quiz": "config_image_quiz"}
+             "Find the Incorrect Fact": "config_incorrect_fact", "Question Feedback Generator": "config_question_feedback", "Image Quiz": "config_image_quiz", "ML Flow chart Quiz":"config_ml_flow_charts"}
 
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
+
 
 if "template" not in st.session_state or st.session_state.template != selected_template:
     st.session_state.template = selected_template
     st.query_params["template"] = selected_template
-    # Reset session state variables
+    # Clear all session state variables
+    keys_to_keep = ['template']  # Add any other keys you want to preserve
+    for key in list(st.session_state.keys()):
+        if key not in keys_to_keep:
+            del st.session_state[key]
     st.session_state['additional_prompt'] = ""
     st.session_state['chat_history'] = []
     st.session_state['CURRENT_PHASE'] = 0
     st.session_state['TOTAL_PRICE'] = 0
 
-config_file = templates[selected_template]
+    st.rerun()
 
+config_file = templates[selected_template]
 
 if config_file:
     config_module = importlib.import_module(config_file)
@@ -54,7 +60,8 @@ function_map = {
     "checkbox": st.checkbox,
     "slider": st.slider,
     "number_input": st.number_input,
-    "image": st.image
+    "image": st.image,
+    "file_uploader": st.file_uploader
 }
 
 
@@ -426,20 +433,20 @@ def main():
                         skip_button = st.button(label="Skip Question", key=f"skip {i}")
 
         key = f"{PHASE_NAME}_ai_response"
-        if key in st.session_state:
+        if key in st.session_state and st.session_state[key]:
             st.info(st.session_state[key], icon="🤖")
 
         key = f"{PHASE_NAME}_ai_score_debug"
-        if key in st.session_state:
+        if key in st.session_state and st.session_state[key]:
             st.info(st.session_state[key], icon="🤖")
 
         key = f"{PHASE_NAME}_ai_response_revision_1"
         # If there are any revisions, enter the loop
-        if key in st.session_state:
+        if key in st.session_state and st.session_state[key]:
             z = 1
             while z <= PHASE_DICT.get("max_revisions",10):
                 key = f"{PHASE_NAME}_ai_response_revision_{z}"
-                if key in st.session_state:
+                if key in st.session_state and st.session_state[key]:
                     st.info(st.session_state[key], icon="🤖")
                 z += 1
 
@@ -557,6 +564,8 @@ def main():
                 celebration()
 
         i = min(i + 1, len(PHASES))
+
+
 
 if __name__ == "__main__":
     main()
