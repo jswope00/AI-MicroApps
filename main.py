@@ -258,7 +258,7 @@ def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
 
 def format_user_prompt(prompt, user_input, phase_name=None):
     try:
-        prompt = prompt_conditionals(user_input)
+        prompt = prompt_conditionals(prompt,user_input)
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except:
@@ -335,7 +335,6 @@ def find_image_urls(fields):
                 uploaded_files = [uploaded_files]
             for uploaded_file in uploaded_files:
                 if uploaded_file:
-                    st.image(uploaded_file)
                     file_content = uploaded_file.read()
                     base64_encoded_content = base64.b64encode(file_content).decode('utf-8')
                     image_url = f"data:image/jpeg;base64,{base64_encoded_content}"

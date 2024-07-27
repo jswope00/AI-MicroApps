@@ -1,4 +1,4 @@
-APP_TITLE = "Flow chart Analysis"
+APP_TITLE = "Alt Text Generator"
 APP_INTRO = """This app demonstrates AI microapp image fields."""
 
 APP_HOW_IT_WORKS = """
@@ -48,20 +48,20 @@ PHASES = {
 }
 
 # Function to handle prompt conditionals based on checkbox values
-def prompt_conditionals(user_input):
+def prompt_conditionals(prompt,user_input):
     if 'complex_image' in user_input and user_input['complex_image']:
-        prompt = """I am sending you a complex image. Please provide a short description to identify the image, and a long description to represent the essential information conveyed by the image. \n
+        conditional_prompt = """I am sending you one or more complex images. Please provide a short description to identify the image, and a long description to represent the essential information conveyed by the image. \n
         Please provide your output in this format \n
         **Short Description:**\n
         [Short Description]\n\n
         **Long Description:**\n
         [Long Description]"""
     else:
-        prompt = """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
+        conditional_prompt = """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
         - Aim to put the most important information at the beginning.\n"""
         if 'important_text' in user_input and user_input['important_text']:
-            prompt += """- Make sure to include any text in this image as part of the alt text"""
-    return prompt
+            conditional_prompt += """- Make sure to include any text in this image as part of the alt text"""
+    return prompt+"\n"+conditional_prompt
 
 selected_llm = "gpt-4o"
 
