@@ -129,7 +129,6 @@ def build_field(phase_name, fields):
         if field_multiple_files:
             kwargs['accept_multiple_files'] = field_multiple_files
 
-
         key = f"{phase_name}_phase_status"
 
         # If the user has already answered this question:
@@ -159,12 +158,12 @@ def build_field(phase_name, fields):
             user_input[field_key] = my_input_function(**kwargs)
 
 
-def call_openai_completions(phase_instructions, user_prompt, image_url=None):
+def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
     selected_llm = st.session_state['selected_llm']
     llm_configuration = st.session_state['llm_config']
     chat_history = st.session_state["chat_history"]
 
-    if image_url and selected_llm not in ["gpt-4-turbo", "gpt-4o"]:
+    if image_urls and selected_llm not in ["gpt-4-turbo", "gpt-4o"]:
         return "ERROR: This model does not support image recognition"
 
     message_history = []
@@ -177,10 +176,10 @@ def call_openai_completions(phase_instructions, user_prompt, image_url=None):
                 [{"role": "user", "content": user_content}, {"role": "assistant", "content": assistant_content}])
             message_history_gemini.extend(
                 [{"role": "user", "parts": [user_content]}, {"role": "model", "parts": [assistant_content]}])
-    if image_url:
+    if image_urls:
         messages_openai = [
                         {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
-                        {"role": "user", "content": [{"type": "image_url", "image_url": {"url": image_url}}]},
+                        {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}} for url in image_urls]},
                         {"role": "user", "content": user_prompt}
                     ]
     else:
@@ -259,7 +258,7 @@ def call_openai_completions(phase_instructions, user_prompt, image_url=None):
 
 def format_user_prompt(prompt, user_input, phase_name=None):
     try:
-        prompt = prompt_conditionals(prompt, user_input, phase_name)
+        prompt = prompt_conditionals(user_input)
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except:
@@ -325,21 +324,23 @@ def celebration():
     )
 
 # Function to find the image URL
-def find_image_url(fields):
+def find_image_urls(fields):
+    image_urls = []
     for key, value in fields.items():
         if 'image' in value:
-            return value['image']
+            image_urls.append(value['image'])
         if 'file_uploader' in value.values():
-            uploaded_file = user_input[key]
-            if uploaded_file:
-                st.image(uploaded_file)
-                file_content = uploaded_file.read()
-                base64_encoded_content = base64.b64encode(file_content).decode('utf-8')
-                image_url = f"data:image/jpeg;base64,{base64_encoded_content}"
-                return image_url
-    return None
-
-
+            uploaded_files = user_input[key]
+            if not isinstance(uploaded_files, list):
+                uploaded_files = [uploaded_files]
+            for uploaded_file in uploaded_files:
+                if uploaded_file:
+                    st.image(uploaded_file)
+                    file_content = uploaded_file.read()
+                    base64_encoded_content = base64.b64encode(file_content).decode('utf-8')
+                    image_url = f"data:image/jpeg;base64,{base64_encoded_content}"
+                    image_urls.append(image_url)
+    return image_urls
 
 def main():
 
@@ -374,8 +375,9 @@ def main():
             st.subheader("Chat History")
             for history in st.session_state['chat_history']:
                 st.markdown(f"**User:** {history['user']}")
-                if 'image' in history:
-                    st.image(history['image'])
+                if 'images' in history:
+                    for image in history['images']:
+                        st.image(image)
                 st.markdown(f"**AI:** {history['assistant']}")
                 st.markdown("---")
 
@@ -474,13 +476,13 @@ def main():
 
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
 
-            image_url = find_image_url(PHASE_DICT.get('fields', {}))
+            image_urls = find_image_urls(PHASE_DICT.get('fields', {}))
 
             if PHASE_DICT.get("ai_response", True):
                 if PHASE_DICT.get("scored_phase", False):
                     if "rubric" in PHASE_DICT:
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_url)
+                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_urls)
                         st.info(body=ai_feedback, icon="🤖")
                         ai_score = call_openai_completions(scoring_instructions, ai_feedback)
                         st.info(ai_score, icon="🤖")
@@ -492,8 +494,8 @@ def main():
                             "user": formatted_user_prompt,
                             "assistant": ai_feedback
                         }
-                        if image_url:
-                            chat_history_entry["image"] = image_url
+                        if image_urls:
+                            chat_history_entry["images"] = image_urls
 
                         st.session_state['chat_history'].append(chat_history_entry)
                         st.session_state["ai_score"] = ai_score
@@ -507,14 +509,14 @@ def main():
                     else:
                         st.error('You need to include a rubric for a scored phase', icon="🚨")
                 else:
-                    ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_url)
+                    ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_urls)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     chat_history_entry = {
                         "user": formatted_user_prompt,
                         "assistant": ai_feedback
                     }
-                    if image_url:
-                        chat_history_entry["image"] = image_url
+                    if image_urls:
+                        chat_history_entry["images"] = image_urls
 
                     st.session_state['chat_history'].append(chat_history_entry)
                     st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
@@ -533,8 +535,8 @@ def main():
                     "user": formatted_user_prompt,
                     "assistant": ai_feedback
                 }
-                if image_url:
-                    chat_history_entry["image"] = image_url
+                if image_urls:
+                    chat_history_entry["images"] = image_urls
 
                 st.session_state['chat_history'].append(chat_history_entry)
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
@@ -577,8 +579,8 @@ def main():
                                     "user": formatted_user_prompt,
                                     "assistant": ai_feedback
                                 }
-                                if image_url:
-                                    chat_history_entry["image"] = image_url
+                                if image_urls:
+                                    chat_history_entry["images"] = image_urls
 
                                 st.session_state['chat_history'].append(chat_history_entry)
                                 st.rerun()
