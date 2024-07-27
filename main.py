@@ -8,6 +8,7 @@ import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
+import base64
 
 load_dotenv()
 
@@ -85,6 +86,8 @@ def build_field(phase_name, fields):
         field_placeholder = field.get("placeholder", "")
         field_image = field.get("image", "")
         field_caption = field.get("caption", "")
+        field_allowed_files = field.get("allowed_files", None)
+        field_multiple_files = field.get("multiple_files", False)
 
         kwargs = {}
         if field_label:
@@ -121,6 +124,10 @@ def build_field(phase_name, fields):
             kwargs['image'] = field_image
         if field_caption:
             kwargs['caption'] = field_caption
+        if field_allowed_files:
+            kwargs['type'] = field_allowed_files
+        if field_multiple_files:
+            kwargs['accept_multiple_files'] = field_multiple_files
 
 
         key = f"{phase_name}_phase_status"
@@ -322,7 +329,16 @@ def find_image_url(fields):
     for key, value in fields.items():
         if 'image' in value:
             return value['image']
+        if 'file_uploader' in value.values():
+            uploaded_file = user_input[key]
+            if uploaded_file:
+                st.image(uploaded_file)
+                file_content = uploaded_file.read()
+                base64_encoded_content = base64.b64encode(file_content).decode('utf-8')
+                image_url = f"data:image/jpeg;base64,{base64_encoded_content}"
+                return image_url
     return None
+
 
 
 def main():
@@ -358,6 +374,8 @@ def main():
             st.subheader("Chat History")
             for history in st.session_state['chat_history']:
                 st.markdown(f"**User:** {history['user']}")
+                if 'image' in history:
+                    st.image(history['image'])
                 st.markdown(f"**AI:** {history['assistant']}")
                 st.markdown("---")
 
@@ -455,7 +473,6 @@ def main():
                 st_store(user_input[field_key], PHASE_NAME, "user_input", field_key)
 
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
-            user_prompt_template = PHASE_DICT.get("user_prompt", "")
 
             image_url = find_image_url(PHASE_DICT.get('fields', {}))
 
@@ -471,10 +488,14 @@ def main():
                         st_store(ai_score, PHASE_NAME, "ai_score_debug")
                         score = extract_score(ai_score)
                         st_store(score, PHASE_NAME, "ai_score")
-                        st.session_state['chat_history'].append({
+                        chat_history_entry = {
                             "user": formatted_user_prompt,
                             "assistant": ai_feedback
-                        })
+                        }
+                        if image_url:
+                            chat_history_entry["image"] = image_url
+
+                        st.session_state['chat_history'].append(chat_history_entry)
                         st.session_state["ai_score"] = ai_score
                         st.session_state['score'] = score
                         if check_score(PHASE_NAME):
@@ -488,10 +509,14 @@ def main():
                 else:
                     ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_url)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
-                    st.session_state['chat_history'].append({
+                    chat_history_entry = {
                         "user": formatted_user_prompt,
                         "assistant": ai_feedback
-                    })
+                    }
+                    if image_url:
+                        chat_history_entry["image"] = image_url
+
+                    st.session_state['chat_history'].append(chat_history_entry)
                     st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                     st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                     st.rerun()
@@ -504,10 +529,14 @@ def main():
                     result += char
                     res_box.info(body=result, icon="🤖")
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
-                st.session_state['chat_history'].append({
+                chat_history_entry = {
                     "user": formatted_user_prompt,
-                    "assistant": hard_coded_message
-                })
+                    "assistant": ai_feedback
+                }
+                if image_url:
+                    chat_history_entry["image"] = image_url
+
+                st.session_state['chat_history'].append(chat_history_entry)
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                 st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                 st.rerun()
@@ -544,10 +573,14 @@ def main():
 
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
                                     st.session_state[f"{PHASE_NAME}_revision_count"]))
-                                st.session_state['chat_history'].append({
+                                chat_history_entry = {
                                     "user": formatted_user_prompt,
                                     "assistant": ai_feedback
-                                })
+                                }
+                                if image_url:
+                                    chat_history_entry["image"] = image_url
+
+                                st.session_state['chat_history'].append(chat_history_entry)
                                 st.rerun()
                         else:
                             st.warning("Revision limits exceeded")

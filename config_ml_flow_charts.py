@@ -21,12 +21,12 @@ PHASES = {
             "ml_flowchart": {
                 "type": "file_uploader",
                 "label": "Upload your flowchart of a machine learning process (PNG or JPG format)",
-                "value": None,
-                "help": "Upload an image file. Supported formats: jpg, jpeg, png"
+                "allowed_files":["jpeg","jpg","png"],
+                "multiple_files":False
             }
         },
         "phase_instructions": "Upload an image of your flowchart depicting a machine learning process and describe what it represents, including any specific ML process and main steps involved.",
-        "user_prompt": "I have uploaded my ML flowchart",
+        "user_prompt": "Here is the uploaded flow chart - ",
         "allow_skip": True,
         "scored_phase": True,
         "rubric": """
