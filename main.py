@@ -8,27 +8,34 @@ import re
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
+import base64
 
 load_dotenv()
 
 
 # Define templates
 templates = {"Case Study: Ebola": "config_ebola_case_study", "Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "MCQ Generator": "config_mcq_generator", "Debate an AI": "config_debate", "mSCT Tutor": "config_msct_tutor",
-             "Find the Incorrect Fact": "config_incorrect_fact", "Alt Text Generator": "config_alt_text", "SOAP Notes Scoring": "config_soap", "Question Feedback Generator": "config_question_feedback", "Image Quiz": "config_image_quiz"}
+             "Find the Incorrect Fact": "config_incorrect_fact", "Alt Text Generator": "config_alt_text", "SOAP Notes Scoring": "config_soap", "Question Feedback Generator": "config_question_feedback", "Image Quiz": "config_image_quiz", "ML Flow chart Quiz":"config_ml_flow_charts"}
 
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
+
 
 if "template" not in st.session_state or st.session_state.template != selected_template:
     st.session_state.template = selected_template
     st.query_params["template"] = selected_template
-    # Reset session state variables
+    # Clear all session state variables
+    keys_to_keep = ['template']  # Add any other keys you want to preserve
+    for key in list(st.session_state.keys()):
+        if key not in keys_to_keep:
+            del st.session_state[key]
     st.session_state['additional_prompt'] = ""
     st.session_state['chat_history'] = []
     st.session_state['CURRENT_PHASE'] = 0
     st.session_state['TOTAL_PRICE'] = 0
 
-config_file = templates[selected_template]
+    st.rerun()
 
+config_file = templates[selected_template]
 
 if config_file:
     config_module = importlib.import_module(config_file)
@@ -54,7 +61,8 @@ function_map = {
     "checkbox": st.checkbox,
     "slider": st.slider,
     "number_input": st.number_input,
-    "image": st.image
+    "image": st.image,
+    "file_uploader": st.file_uploader
 }
 
 
@@ -78,6 +86,8 @@ def build_field(phase_name, fields):
         field_placeholder = field.get("placeholder", "")
         field_image = field.get("image", "")
         field_caption = field.get("caption", "")
+        field_allowed_files = field.get("allowed_files", None)
+        field_multiple_files = field.get("multiple_files", False)
 
         kwargs = {}
         if field_label:
@@ -114,7 +124,10 @@ def build_field(phase_name, fields):
             kwargs['image'] = field_image
         if field_caption:
             kwargs['caption'] = field_caption
-
+        if field_allowed_files:
+            kwargs['type'] = field_allowed_files
+        if field_multiple_files:
+            kwargs['accept_multiple_files'] = field_multiple_files
 
         key = f"{phase_name}_phase_status"
 
@@ -145,12 +158,12 @@ def build_field(phase_name, fields):
             user_input[field_key] = my_input_function(**kwargs)
 
 
-def call_openai_completions(phase_instructions, user_prompt, image_url=None):
+def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
     selected_llm = st.session_state['selected_llm']
     llm_configuration = st.session_state['llm_config']
     chat_history = st.session_state["chat_history"]
 
-    if image_url and selected_llm not in ["gpt-4-turbo", "gpt-4o"]:
+    if image_urls and selected_llm not in ["gpt-4-turbo", "gpt-4o"]:
         return "ERROR: This model does not support image recognition"
 
     message_history = []
@@ -163,10 +176,10 @@ def call_openai_completions(phase_instructions, user_prompt, image_url=None):
                 [{"role": "user", "content": user_content}, {"role": "assistant", "content": assistant_content}])
             message_history_gemini.extend(
                 [{"role": "user", "parts": [user_content]}, {"role": "model", "parts": [assistant_content]}])
-    if image_url:
+    if image_urls:
         messages_openai = [
                         {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
-                        {"role": "user", "content": [{"type": "image_url", "image_url": {"url": image_url}}]},
+                        {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}} for url in image_urls]},
                         {"role": "user", "content": user_prompt}
                     ]
     else:
@@ -245,7 +258,7 @@ def call_openai_completions(phase_instructions, user_prompt, image_url=None):
 
 def format_user_prompt(prompt, user_input, phase_name=None):
     try:
-        prompt = prompt_conditionals(prompt, user_input, phase_name)
+        prompt = prompt_conditionals(prompt,user_input)
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except:
@@ -311,12 +324,22 @@ def celebration():
     )
 
 # Function to find the image URL
-def find_image_url(fields):
+def find_image_urls(fields):
+    image_urls = []
     for key, value in fields.items():
         if 'image' in value:
-            return value['image']
-    return None
-
+            image_urls.append(value['image'])
+        if 'file_uploader' in value.values():
+            uploaded_files = user_input[key]
+            if not isinstance(uploaded_files, list):
+                uploaded_files = [uploaded_files]
+            for uploaded_file in uploaded_files:
+                if uploaded_file:
+                    file_content = uploaded_file.read()
+                    base64_encoded_content = base64.b64encode(file_content).decode('utf-8')
+                    image_url = f"data:image/jpeg;base64,{base64_encoded_content}"
+                    image_urls.append(image_url)
+    return image_urls
 
 def main():
 
@@ -351,6 +374,9 @@ def main():
             st.subheader("Chat History")
             for history in st.session_state['chat_history']:
                 st.markdown(f"**User:** {history['user']}")
+                if 'images' in history:
+                    for image in history['images']:
+                        st.image(image)
                 st.markdown(f"**AI:** {history['assistant']}")
                 st.markdown("---")
 
@@ -426,20 +452,20 @@ def main():
                         skip_button = st.button(label="Skip Question", key=f"skip {i}")
 
         key = f"{PHASE_NAME}_ai_response"
-        if key in st.session_state:
+        if key in st.session_state and st.session_state[key]:
             st.info(st.session_state[key], icon="🤖")
 
         key = f"{PHASE_NAME}_ai_score_debug"
-        if key in st.session_state:
+        if key in st.session_state and st.session_state[key]:
             st.info(st.session_state[key], icon="🤖")
 
         key = f"{PHASE_NAME}_ai_response_revision_1"
         # If there are any revisions, enter the loop
-        if key in st.session_state:
+        if key in st.session_state and st.session_state[key]:
             z = 1
             while z <= PHASE_DICT.get("max_revisions",10):
                 key = f"{PHASE_NAME}_ai_response_revision_{z}"
-                if key in st.session_state:
+                if key in st.session_state and st.session_state[key]:
                     st.info(st.session_state[key], icon="🤖")
                 z += 1
 
@@ -448,15 +474,14 @@ def main():
                 st_store(user_input[field_key], PHASE_NAME, "user_input", field_key)
 
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
-            user_prompt_template = PHASE_DICT.get("user_prompt", "")
 
-            image_url = find_image_url(PHASE_DICT.get('fields', {}))
+            image_urls = find_image_urls(PHASE_DICT.get('fields', {}))
 
             if PHASE_DICT.get("ai_response", True):
                 if PHASE_DICT.get("scored_phase", False):
                     if "rubric" in PHASE_DICT:
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_url)
+                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_urls)
                         st.info(body=ai_feedback, icon="🤖")
                         ai_score = call_openai_completions(scoring_instructions, ai_feedback)
                         st.info(ai_score, icon="🤖")
@@ -464,10 +489,14 @@ def main():
                         st_store(ai_score, PHASE_NAME, "ai_score_debug")
                         score = extract_score(ai_score)
                         st_store(score, PHASE_NAME, "ai_score")
-                        st.session_state['chat_history'].append({
+                        chat_history_entry = {
                             "user": formatted_user_prompt,
                             "assistant": ai_feedback
-                        })
+                        }
+                        if image_urls:
+                            chat_history_entry["images"] = image_urls
+
+                        st.session_state['chat_history'].append(chat_history_entry)
                         st.session_state["ai_score"] = ai_score
                         st.session_state['score'] = score
                         if check_score(PHASE_NAME):
@@ -479,12 +508,16 @@ def main():
                     else:
                         st.error('You need to include a rubric for a scored phase', icon="🚨")
                 else:
-                    ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_url)
+                    ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_urls)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
-                    st.session_state['chat_history'].append({
+                    chat_history_entry = {
                         "user": formatted_user_prompt,
                         "assistant": ai_feedback
-                    })
+                    }
+                    if image_urls:
+                        chat_history_entry["images"] = image_urls
+
+                    st.session_state['chat_history'].append(chat_history_entry)
                     st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                     st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                     st.rerun()
@@ -497,10 +530,14 @@ def main():
                     result += char
                     res_box.info(body=result, icon="🤖")
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
-                st.session_state['chat_history'].append({
+                chat_history_entry = {
                     "user": formatted_user_prompt,
-                    "assistant": hard_coded_message
-                })
+                    "assistant": ai_feedback
+                }
+                if image_urls:
+                    chat_history_entry["images"] = image_urls
+
+                st.session_state['chat_history'].append(chat_history_entry)
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                 st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                 st.rerun()
@@ -537,10 +574,14 @@ def main():
 
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
                                     st.session_state[f"{PHASE_NAME}_revision_count"]))
-                                st.session_state['chat_history'].append({
+                                chat_history_entry = {
                                     "user": formatted_user_prompt,
                                     "assistant": ai_feedback
-                                })
+                                }
+                                if image_urls:
+                                    chat_history_entry["images"] = image_urls
+
+                                st.session_state['chat_history'].append(chat_history_entry)
                                 st.rerun()
                         else:
                             st.warning("Revision limits exceeded")
@@ -557,6 +598,8 @@ def main():
                 celebration()
 
         i = min(i + 1, len(PHASES))
+
+
 
 if __name__ == "__main__":
     main()
