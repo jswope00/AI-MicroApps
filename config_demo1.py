@@ -50,7 +50,7 @@ PHASES = {
             "pluto": {
                 "type": "radio",
                 "options": ['Yes!', 'No', 'It is whatever NASA tells me it is.'],
-                "label": "My age is:",
+                "label": "Is Pluto a planet?",
             }
         },
         "phase_instructions": "The user has been asked 'Is pluto a planet?' and will give their response. Comment on their response",

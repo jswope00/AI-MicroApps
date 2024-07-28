@@ -1,68 +1,41 @@
-
-APP_TITLE = "Question Feedback"
-APP_INTRO = """This app takes existing questions and provides pedogically sound feedback that explains the correct and incorrect answer(s). Immediate feedback is one of the most powerful tools that influences student comprehension. 
+APP_TITLE = "Zodiac Symbol"
+APP_INTRO = """This is a demonstration app that determines a users zodiac symbol based on their birth month and date. 
 """
 
 APP_HOW_IT_WORKS = """
-
-This app can:
-
-1. provide feedback for a question when provided the question, correct answer(s) and incorrect answer(s)
-2. Incorporate course knowledge if provided. 
-3. Consider the question format if provided. 
-
+This app collects the name, birth Month, and birth date of the user, and provides them their Zodiac symbol. 
+It utilizes the OpenAI and other AI APIs to send a custom prompt to AI with the user's inputs and returns the AI's response. 
  """
-
-COMPLETION_MESSAGE = "Done! Refresh the page to try again. "
-COMPLETION_CELEBRATION = False
-
-SCORING_DEBUG_MODE = True
 
 SHARED_ASSET = {
 }
 
 HTML_BUTTON = {
-
+    
 }
 
-SYSTEM_PROMPT = "You provide pedagogically sound feedback for questions that lack them. Feedback should explain why the correct answer is correct, and provide very brief explanation for why the distractors are incorrect."
+SYSTEM_PROMPT = """You are an expert in zodiac symbols. You know the accurate zodiac symbol based on a person's birth month and date, and you """
 
 PHASES = {
-    "phase1": {
-        "name": "Feedback",
-        "fields": {
-            "question_text": {
-                "type": "text_area",
-                "label": "Question and answer Text:",
-                "height": 200,
-                "placeholder": "Use the following format, where correct answer(s) are indicated by X:\n\nWhat color is the sky?\n\n( ) Red\n(x) Blue\n( ) Green\n"
-            },
-            "source_material": {
-                "type": "text_area",
-                "label": "Enter the source material",
-                "height": 200,
-                "placeholder": "",
-            },
-            "audience": {
-                "label": "Describe the audience",
-                "type": "selectbox",
-                "options": ['University', 'High School', 'Grade School']
-            },
 
-        },
-        "phase_instructions": "",
-        "user_prompt": "Please provide feedback for the following question: {question_text}",
-        "allow_skip": True,
-    }
- 
+
+
 }
 
-selected_llm = "gpt-3.5-turbo"
+def prompt_conditionals(prompt, user_input, phase_name=None):
+    #TO-DO: This is a hacky way to make prompts conditional that requires the user to know a lot of python and get the phase and field names exactly right. Future task to improve it. 
+
+
+
+
+    return prompt
+    
+selected_llm = "gpt-4o-mini"
 
 
 LLM_CONFIGURATIONS = {
-    "gpt-3.5-turbo": {
-        "model": "gpt-3.5-turbo-0125",
+    "gpt-4o-mini": {
+        "model": "gpt-4o-mini",
         "frequency_penalty": 0,
         "max_tokens": 1000,
         "presence_penalty": 0,
@@ -115,6 +88,13 @@ LLM_CONFIGURATIONS = {
         "price_input_token_1M":3.5,
         "price_output_token_1M":10.50
     },
+    "claude-3.5-sonnet": {
+        "model": "claude-3-5-sonnet-20240620",
+        "max_tokens": 1000,
+        "temperature": 1,
+        "price_input_token_1M": 3,
+        "price_output_token_1M": 15
+    },
     "claude-opus": {
         "model": "claude-3-opus-20240229",
         "max_tokens": 1000,
@@ -138,4 +118,8 @@ LLM_CONFIGURATIONS = {
     }
 }
 
+SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
+
+COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
+COMPLETION_CELEBRATION = False
