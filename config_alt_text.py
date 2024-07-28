@@ -1,8 +1,14 @@
 APP_TITLE = "Alt Text Generator"
-APP_INTRO = """This app demonstrates AI microapp image fields."""
+APP_INTRO = """This app accepts images via upload or URL and returns alt text for accessibility."""
 
 APP_HOW_IT_WORKS = """
-"""
+This app creates alt text for accessibility from images. 
+                For most images, it provides brief alt text to describe the image, focusing on the most important information first. 
+
+                For complex images, like charts and graphs, the app creates a short description of the image and a longer detail that describes what the complex image is conveying. 
+
+                For more information, see <a href="https://www.w3.org/WAI/tutorials/images/" target="_blank">W3C Images Accessibility Guidelines</a>
+ """
 
 SHARED_ASSET = {
 }
@@ -11,7 +17,7 @@ HTML_BUTTON = {
 
 }
 
-SYSTEM_PROMPT = """You accept images in url and file format to generate description or alt text."""
+SYSTEM_PROMPT = """You accept images in url and file format to generate description or alt text according to WCAG and ADA standards."""
 
 PHASES = {
     "phase1": {
@@ -41,7 +47,7 @@ PHASES = {
             }
         },
         "phase_instructions": "Generate the alt text for the image urls and uploads",
-        "user_prompt": "Here is the uploaded images - {http_img_urls} and {uploaded_files}",
+        "user_prompt": "",
         "show_prompt": True,
         "allow_skip": False
     }
@@ -58,10 +64,11 @@ def prompt_conditionals(prompt,user_input):
         [Long Description]"""
     else:
         conditional_prompt = """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
-        - Aim to put the most important information at the beginning.\n"""
+        - Aim to put the most important information at the beginning. \n"""
         if 'important_text' in user_input and user_input['important_text']:
             conditional_prompt += """- Make sure to include any text in this image as part of the alt text"""
-    return prompt+"\n"+conditional_prompt
+    prompt = "Here is the uploaded images - {http_img_urls} and {uploaded_files}"
+    return conditional_prompt+"\n"+prompt
 
 selected_llm = "gpt-4o"
 
