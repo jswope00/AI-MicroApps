@@ -70,7 +70,8 @@ Edit main.py to add your config file to the `templates` JSON list in the followi
 Any changes to a config file require a restart of Streamilit
    - Ctrl + C to quit Streamlit from your terminal
    - To start Streamlit again:
-     ```bash
+
+```bash
 streamlit run main.py
 ``` 
 
