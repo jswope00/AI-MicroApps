@@ -231,68 +231,10 @@ PHASES = {
 
         },
         "phase_instructions": "The user will summarize the shared case study. Please critically review their response for accuracy. You will give them credit for mentioning Ebola, and you will be very pleased if they mention it is about Ebola with any other relevant details.",
-        "user_prompt": "{about}",
+        "user_prompt": "",
         "ai_response": True,
-        "scored_phase": True,
-        "minimum_score": 2,
-        "rubric": """
-            1. About
-                2 points - The user provides details that the case study is about Ebola and its transmission. 
-                1 point - The user mentions the case study is about Ebola, but provides no further details. 
-                0 points - The user does not accurately describe the shared case study. 
-        """,
-        "allow_revisions": False,
-        "allow_skip": True,
-        #"show_prompt": True,
-        #"read_only_prompt": False
-    },
-    "spillover": {
-        "name": "Define Spillover",
-        "fields": {
-            "spillover": {
-                "type": "text_area",
-                "height": 300,
-                "label": """Describe a spillover event and how one might occur.""",
-                "value": "A spillover event is when a virus jumps from one species to another, like from a bat to a monkey, or a monkey to a human. This occurs through direct contact with contaminated meat like eating an infected carcass or preparing raw meat.",
-            }
-        },
-        "phase_instructions": "The user will describe a spillover event in the context of this shared document and how one might happen. Critically assess whether the user has accurately defined a spillover event and provided true examples for how one might happen. Provide feedback on their answer. If relevant, add further examples of how a spillover event might happen. ",
-        "user_prompt": "{spillover}",
-        "ai_response": True,
-        "scored_phase": True,
-        "minimum_score": 2,
-        "rubric": """
-                1. Definition
-                    1 point - The response accurately defines a spillover event
-                    0 points - The response does not accurately define a spillover event.
-                2. Examples
-                    1 point - The response provides one or more plausible examples of how a spillover event might occur. 
-                    0 points - The response does not provide any plausible examples of how a spillover event might occur. 
-        """,
-        "allow_revisions": False,
-        "max_revisions": 2,
-        "allow_skip": True,
-        "show_prompt": False,
-        "read_only_prompt": False
-    },
-    "reflection": {
-        "name": "Reflect",
-        "fields": {
-            "reflection": {
-                "type": "text_area",
-                "height": 300,
-                "label": "Imagine you are a public health worker in an area affected by Ebola. How might you ease the transition for survivors as they re-enter their communities?",
-                "value":"Survivors could be supported by providing them leave as they manage their symptoms. Also by providing education to the community about the safety and struggles of survivors. Maybe a support group of survivors and supporters, too?",
-            }
-        },
-        "phase_instructions": "The user will hypothesize about ways to support survivors as they re-enter the community. Critically evaluate their response to determine if they understand and have made a valid attempt to answer the question. If so, be supportive of their answer and their work on this exercise.",
-        "user_prompt": "{reflection}",
-        "ai_response": True,
-        "scored_phase": False,
         "allow_revisions": True,
-        "max_revisions": 2,
-        "allow_skip": True,
-        "show_prompt": False,
+        "show_prompt": True,
         "read_only_prompt": False
     }
 
@@ -305,18 +247,67 @@ def prompt_conditionals(prompt, user_input, phase_name=None):
         prompt = (
             "Please validate the alignment between the provided learning content and the learning objectives provided.\n"
             + "Be extremely strict and make sure that A) specific content exists that can be assessed to meet the learning objective and B) the learning objective is reasonable for an online course.")
-        if learning_objectives:
+        if user_input["learning_objectives"]:
             prompt += (
             "Here are my learning objectives: \n"
-            + learning_objectives + "\n"
+            + user_input["learning_objectives"] + "\n"
             )
-        if learning_content:
+        if user_input["learning_content"]:
             prompt += (
             "Here is the content: \n"
             + "===============\n"
-            + learning_content + "\n"
+            + user_input["learning_content"] + "\n"
             )
+    else:
+        if user_input["request_type"] == "Suggest learning objectives based on the title":
+            prompt = "Please suggest " + str(user_input["lo_quantity"]) + " learning objectives for the provided course. \n"    
+            if any([user_input["goal_remember"], user_input["goal_apply"], user_input["goal_evaluate"], user_input["goal_understand"], user_input["goal_analyze"], user_input["goal_create"]]):
+                prompt += "Focus specifically on these cognitive goals: " + user_input["goal_remember"] + "\n"
+                if user_input["goal_remember"]:
+                    prompt+= "Remember \n"
+                if user_input["goal_apply"]:
+                    prompt+= "Apply \n"
+                if user_input["goal_evaluate"]:
+                    prompt+= "Evaluate \n"
+                if user_input["goal_understand"]:
+                    prompt+= "Understand \n"
+                if user_input["goal_analyze"]:
+                    prompt+= "Analyze \n"
+                if user_input["goal_create"]:
+                    prompt+= "Create \n"
+                prompt += ". \n"
+        else:
+            prompt = "Please write " + str(user_input["lo_quantity"]) + " learning objectives based on the provided content. \n"
+            if any([user_input["goal_remember"], user_input["goal_apply"], user_input["goal_evaluate"], user_input["goal_understand"], user_input["goal_analyze"], user_input["goal_create"]]):
+                prompt += "Focus specifically on these cognitive goals: \n"
+                if user_input["goal_remember"]:
+                    prompt+= "Remember \n"
+                if user_input["goal_apply"]:
+                    prompt+= "Apply \n"
+                if user_input["goal_evaluate"]:
+                    prompt+= "Evaluate \n"
+                if user_input["goal_understand"]:
+                    prompt+= "Understand \n"
+                if user_input["goal_analyze"]:
+                    prompt+= "Analyze \n"
+                if user_input["goal_create"]:
+                    prompt+= "Create \n"
+                prompt += ". \n"
 
+        prompt += "Provide learning objectives that are specific, measurable, easy to understand, and suitable for an online course. \n"
+        prompt += "Start each learning objective with a verb from Bloom's taxonomy. **Avoid** verbs like \"understand\", \"learn\", or \"know\".\n"
+        if user_input["learning_preferences"]:
+            prompt += "Try to engage a variety of learning modalities (e.g. Visual, Auditory, Kinesthetic) \n"
+        if user_input["relevance"]:
+            prompt += "Try to provide learning objectives that are relevant in the real world. \n"
+        if user_input["title"]:
+            prompt += "Here is the title of the course: " + user_input["title"] + "\n"
+        if user_input["learning_content"]:
+            prompt += (
+            "Here is the content: \n"
+            + "===============\n"
+            + user_input["learning_content"]
+            )
 
 
     return prompt
@@ -333,7 +324,7 @@ LLM_CONFIGURATIONS = {
         "temperature": 1,
         "top_p": 1,
         "price_input_token_1M":0.150,
-        "price_output_token_1M":0.600
+        "price_output_token_1M":.600
     },
     "gpt-4-turbo": {
         "model": "gpt-4-turbo",

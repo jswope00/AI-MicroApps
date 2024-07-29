@@ -131,10 +131,20 @@ def prompt_conditionals(prompt, user_input, phase_name=None):
 
     return prompt
     
-selected_llm = "gpt-4o"
+selected_llm = "gpt-4o-mini"
 
 
 LLM_CONFIGURATIONS = {
+    "gpt-4o-mini": {
+        "model": "gpt-4o-mini",
+        "frequency_penalty": 0,
+        "max_tokens": 1000,
+        "presence_penalty": 0,
+        "temperature": 1,
+        "top_p": 1,
+        "price_input_token_1M":0.150,
+        "price_output_token_1M":.600
+    },
     "gpt-4-turbo": {
         "model": "gpt-4-turbo",
         "frequency_penalty": 0,
@@ -154,16 +164,6 @@ LLM_CONFIGURATIONS = {
         "top_p": 1,
         "price_input_token_1M":5,
         "price_output_token_1M":15
-    },
-    "gpt-3.5-turbo": {
-        "model": "gpt-3.5-turbo-0125",
-        "frequency_penalty": 0,
-        "max_tokens": 1000,
-        "presence_penalty": 0,
-        "temperature": 1,
-        "top_p": 1,
-        "price_input_token_1M":0.50,
-        "price_output_token_1M":1.50
     },
     "gemini-1.0-pro": {
         "model": "gemini-1.0-pro",

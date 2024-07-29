@@ -15,7 +15,7 @@ load_dotenv()
 
 # Define templates
 templates = {"Case Study: Ebola": "config_ebola_case_study", "Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "MCQ Generator": "config_mcq_generator", "Debate an AI": "config_debate", "mSCT Tutor": "config_msct_tutor",
-             "Find the Incorrect Fact": "config_incorrect_fact", "Alt Text Generator": "config_alt_text", "SOAP Notes Scoring": "config_soap", "Question Feedback Generator": "config_question_feedback", "Image Quiz": "config_image_quiz", "ML Flow chart Quiz":"config_ml_flow_charts"}
+             "Find the Incorrect Fact": "config_incorrect_fact", "Alt Text Generator": "config_alt_text", "SOAP Notes Scoring": "config_soap", "Question Feedback Generator": "config_question_feedback", "Learning Obective Generator": "config_lo_generator", "Image Quiz": "config_image_quiz", "Zodiac Symbol": "config_zodiac"}
 
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
 
@@ -163,7 +163,7 @@ def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
     llm_configuration = st.session_state['llm_config']
     chat_history = st.session_state["chat_history"]
 
-    if image_urls and selected_llm not in ["gpt-4-turbo", "gpt-4o"]:
+    if image_urls and selected_llm not in ["gpt-4o-mini", "gpt-4-turbo", "gpt-4o"]:
         return "ERROR: This model does not support image recognition"
 
     message_history = []
@@ -187,7 +187,7 @@ def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
                 {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
                 {"role": "user", "content": user_prompt}
             ]
-    if selected_llm in ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"]:
+    if selected_llm in ["gpt-3.5-turbo", "gpt-4o-mini", "gpt-4-turbo", "gpt-4o"]:
         try:
             response = openai.chat.completions.create(
                 model=llm_configuration["model"],
@@ -258,10 +258,11 @@ def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
 
 def format_user_prompt(prompt, user_input, phase_name=None):
     try:
-        prompt = prompt_conditionals(prompt,user_input)
+        prompt = prompt_conditionals(prompt,user_input, phase_name)
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
-    except:
+    except Exception as e:
+        print("Error occurred:", e)
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
 
@@ -532,7 +533,7 @@ def main():
                 st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
                 chat_history_entry = {
                     "user": formatted_user_prompt,
-                    "assistant": ai_feedback
+                    "assistant": hard_coded_message
                 }
                 if image_urls:
                     chat_history_entry["images"] = image_urls

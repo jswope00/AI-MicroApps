@@ -54,7 +54,7 @@ PHASES = {
 }
 
 # Function to handle prompt conditionals based on checkbox values
-def prompt_conditionals(prompt,user_input):
+def prompt_conditionals(prompt,user_input, phase_name=None):
     if 'complex_image' in user_input and user_input['complex_image']:
         conditional_prompt = """I am sending you one or more complex images. Please provide a short description to identify the image, and a long description to represent the essential information conveyed by the image. \n
         Please provide your output in this format \n
@@ -70,19 +70,19 @@ def prompt_conditionals(prompt,user_input):
     prompt = "Here is the uploaded images - {http_img_urls} and {uploaded_files}"
     return conditional_prompt+"\n"+prompt
 
-selected_llm = "gpt-4o"
+selected_llm = "gpt-4o-mini"
 
 
 LLM_CONFIGURATIONS = {
-    "gpt-3.5-turbo": {
-        "model": "gpt-3.5-turbo-0125",
+    "gpt-4o-mini": {
+        "model": "gpt-4o-mini",
         "frequency_penalty": 0,
         "max_tokens": 1000,
         "presence_penalty": 0,
         "temperature": 1,
         "top_p": 1,
-        "price_input_token_1M":0.50,
-        "price_output_token_1M":1.50
+        "price_input_token_1M":0.150,
+        "price_output_token_1M":.600
     },
     "gpt-4-turbo": {
         "model": "gpt-4-turbo",
