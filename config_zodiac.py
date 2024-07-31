@@ -48,6 +48,7 @@ PHASES = {
         #"read_only_prompt": False
     }
 }
+}
 
 def prompt_conditionals(prompt, user_input, phase_name=None):
     #TO-DO: This is a hacky way to make prompts conditional that requires the user to know a lot of python and get the phase and field names exactly right. Future task to improve it. 
