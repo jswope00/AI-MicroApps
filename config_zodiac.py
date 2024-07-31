@@ -47,6 +47,8 @@ PHASES = {
         "show_prompt": True,
         #"read_only_prompt": False
     }
+
+
 }
 
 def prompt_conditionals(prompt, user_input, phase_name=None):
@@ -68,8 +70,8 @@ LLM_CONFIGURATIONS = {
         "presence_penalty": 0,
         "temperature": 1,
         "top_p": 1,
-        "price_input_token_1M":0.150,
-        "price_output_token_1M":.600
+        "price_input_token_1M":0.50,
+        "price_output_token_1M":1.50
     },
     "gpt-4-turbo": {
         "model": "gpt-4-turbo",
