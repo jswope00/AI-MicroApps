@@ -72,12 +72,13 @@ PHASES = {
 }
 
 # Function to handle prompt conditionals based on checkbox values
-def prompt_conditionals(prompt, user_input,phase_name=None):
+def prompt_conditionals(prompt, user_input, phase_name=None):
+    additional_prompts = []
     for condition in PHASES[phase_name]["prompt_conditions"]:
         condition_clause = condition["condition"]
         if all(user_input.get(key) == value for key, value in condition_clause.items()):
-            return condition["prompt"] + "\n" + prompt
-    return prompt
+            additional_prompts.append(condition["prompt"])
+    return prompt + "\n".join(additional_prompts)
 
 selected_llm = "gpt-4o"
 

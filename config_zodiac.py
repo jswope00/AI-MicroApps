@@ -68,20 +68,13 @@ PHASES = {
 }
 
 def prompt_conditionals(prompt, user_input, phase_name=None):
+    additional_prompts = []
     for condition in PHASES[phase_name]["prompt_conditions"]:
         condition_clause = condition["condition"]
         if all(user_input.get(key) == value for key, value in condition_clause.items()):
-            return condition["prompt"] + "\n" + prompt
-    return prompt
+            additional_prompts.append(condition["prompt"])
+    return prompt + "\n".join(additional_prompts)
 
-def format_user_prompt(prompt, user_input, phase_name=None):
-    try:
-        prompt = prompt_conditionals(prompt, user_input, phase_name)
-        formatted_user_prompt = prompt.format(**user_input)
-        return formatted_user_prompt
-    except Exception as e:
-        print(f"Error formatting prompt: {e}")
-        return prompt.format(**user_input)
 
 selected_llm = "gpt-4o-mini"
 

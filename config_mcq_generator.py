@@ -89,7 +89,17 @@ PHASES = {
 
         },
         "phase_instructions": "At the end of your response, always tell me what AI model you are running.",
-        "user_prompt": "Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n\n",
+        "user_prompt": """Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n
+Topic Content: {topic_content}\n
+Learning Objective : {learning_objective}\n
+Format each question like the following:
+Question: [Question Text] \n
+A) [Answer A] \n
+B) [Answer B] \n
+....
+N) [Answer N] \n
+
+Solution: [Answer A, B...N]\n\n""",
         "ai_response": True,
         "scored_phase": True,
         "minimum_score": 0,
@@ -102,7 +112,33 @@ PHASES = {
         "max_revisions": 2,
         "allow_skip": False,
         "show_prompt": True,
-        "read_only_prompt": False
+        "read_only_prompt": False,
+        "prompt_conditions": [
+            {
+                "condition": {"original_content_only": True},
+                "prompt": "Please create questions based solely on the provided text. \n\n"
+            },
+            {
+                "condition": {"distractors_difficulty": "Obvious"},
+                "prompt": "Distractors should be obviously incorrect options. \n\n"
+            },
+            {
+                "condition": {"distractors_difficulty": "Challenging"},
+                "prompt": "Distractors should sound like they could be plausible, but are ultimately incorrect. \n\n"
+            },
+            {
+                "condition": {"learner_feedback": True},
+                "prompt": "Please provide a feedback section for each question that says why the correct answer is the best answer and the other options are incorrect. \n\n"
+            },
+            {
+                "condition": {"hints": True},
+                "prompt": "Also, include a hint for each question.\n\n"
+            },
+            {
+                "condition": {"output_format": "OLX"},
+                "prompt": "Please write your MCQs in Open edX OLX format\n\n"
+            }
+        ]
     },
     "phase2": {
         "name": "Configure Questions",
@@ -129,56 +165,15 @@ PHASES = {
         "show_prompt": True,
         "read_only_prompt": False
     }
-
 }
 
 def prompt_conditionals(prompt, user_input, phase_name=None):
-    #TO-DO: This is a hacky way to make prompts conditional that requires the user to know a lot of python and get the phase and field names exactly right. Future task to improve it. 
-
-    if phase_name == "phase1":
-        if user_input["original_content_only"] == True:
-            prompt += "Please create questions based solely on the provided text. \n\n"
-        else: 
-            prompt += "Please create questions that incorporate both the provided text as well as your knowledge of the topic. \n\n"
-
-        if user_input["distractors_difficulty"] == "Obvious":
-            prompt += "Distractors should be obviously incorrect options. \n\n"
-        elif user_input["distractors_difficulty"] == "Challenging":
-            prompt += "Distractors should sound like they could be plausible, but are ultimately incorrect. \n\n"
-
-        if user_input["learning_objective"]:
-            prompt += "Focus on meeting the following learning objective(s) : {learning_objective} \n\n"
-
-        if user_input["learner_feedback"]:
-            prompt += "Please provide a feedback section for each question that says why the correct answer is the best answer and the other options are incorrect. \n\n"
-
-        if user_input["hints"]:
-            prompt += "Also, include a hint for each question.\n\n"
-
-        if user_input["output_format"] == "OLX":
-            prompt += "Please write your MCQs in Open edX OLX format\n\n"
-
-        prompt += """
-            Format each question like the following:
-            Question: [Question Text] \n
-            A) [Answer A] \n
-            B) [Answer B] \n
-            ....
-            N) [Answer N] \n
-
-            Solution: [Answer A, B...N]\n\n
-            """
-
-        if user_input["learner_feedback"]:
-            prompt += "Feedback: [Feedback]\n\n"
-
-        if user_input["hints"]:
-            prompt += "Hint: [Hint]\n\n"
-
-        prompt += "Here is the text: \n===============\n{topic_content}"
-
-
-    return prompt
+    additional_prompts = []
+    for condition in PHASES[phase_name]["prompt_conditions"]:
+        condition_clause = condition["condition"]
+        if all(user_input.get(key) == value for key, value in condition_clause.items()):
+            additional_prompts.append(condition["prompt"])
+    return prompt + "\n".join(additional_prompts)
     
 selected_llm = "gpt-3.5-turbo"
 
@@ -271,5 +266,5 @@ LLM_CONFIGURATIONS = {
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
 
-COMPLETION_MESSAGE = ""
+COMPLETION_MESSAGE = "Hope you enjoyed using the tool"
 COMPLETION_CELEBRATION = False
