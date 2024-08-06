@@ -37,38 +37,47 @@ PHASES = {
                 "type": "checkbox",
                 "label": "The text in my image(s) is important",
                 "value": False,
-                "help": "If text is important, it should be included in the alt text. If it is irrelevant or covered in text elsewhere on the page, it should not be included",
+                "help": "If text is important, it should be included in the alt text. If it is irrelevant or covered in text elsewhere on the page, it should not be included"
             },
             "complex_image": {
                 "type": "checkbox",
                 "label": "My image is a complex image (chart, infographic, etc...)",
                 "value": True,
-                "help": "Complex images get both a short and a long description of the image",
+                "help": "Complex images get both a short and a long description of the image"
             }
         },
         "phase_instructions": "Generate the alt text for the image urls and uploads",
-        "user_prompt": "",
+        "user_prompt": """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
+                - Aim to put the most important information at the beginning.""",
         "show_prompt": True,
-        "allow_skip": False
+        "allow_skip": False,
+        "prompt_conditions": [
+            {
+                "condition": {"complex_image": True},
+                "prompt": """I am sending you one or more complex images. Please provide a short description to identify the image, and a long description to represent the essential information conveyed by the image. \n
+                Please provide your output in this format \n
+                **Short Description:**\n
+                [Short Description]\n\n
+                **Long Description:**\n
+                [Long Description]\n"""
+            },
+            {
+                "condition": {"important_text": True, "complex_image": False},
+                "prompt": """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
+                - Aim to put the most important information at the beginning. \n
+                - Make sure to include any text in this image as part of the alt text"""
+            }
+        ]
     }
 }
 
 # Function to handle prompt conditionals based on checkbox values
-def prompt_conditionals(prompt,user_input):
-    if 'complex_image' in user_input and user_input['complex_image']:
-        conditional_prompt = """I am sending you one or more complex images. Please provide a short description to identify the image, and a long description to represent the essential information conveyed by the image. \n
-        Please provide your output in this format \n
-        **Short Description:**\n
-        [Short Description]\n\n
-        **Long Description:**\n
-        [Long Description]"""
-    else:
-        conditional_prompt = """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
-        - Aim to put the most important information at the beginning. \n"""
-        if 'important_text' in user_input and user_input['important_text']:
-            conditional_prompt += """- Make sure to include any text in this image as part of the alt text"""
-    prompt = "Here is the uploaded images - {http_img_urls} and {uploaded_files}"
-    return conditional_prompt+"\n"+prompt
+def prompt_conditionals(prompt, user_input,phase_name=None):
+    for condition in PHASES[phase_name]["prompt_conditions"]:
+        condition_clause = condition["condition"]
+        if all(user_input.get(key) == value for key, value in condition_clause.items()):
+            return condition["prompt"] + "\n" + prompt
+    return prompt
 
 selected_llm = "gpt-4o"
 
