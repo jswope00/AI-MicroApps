@@ -89,7 +89,10 @@ PHASES = {
 
         },
         "phase_instructions": "At the end of your response, always tell me what AI model you are running.",
-        "user_prompt": """Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n
+"user_prompt": [
+            {
+                "condition": {},
+                "prompt": """Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n
 Topic Content: {topic_content}\n
 Learning Objective : {learning_objective}\n
 Format each question like the following:
@@ -99,21 +102,8 @@ B) [Answer B] \n
 ....
 N) [Answer N] \n
 
-Solution: [Answer A, B...N]\n\n""",
-        "ai_response": True,
-        "scored_phase": True,
-        "minimum_score": 0,
-        "rubric": """
-            1. Questions
-                1 points - The user generates any questions
-                0 points - The user does not generate any questions
-        """,
-        "allow_revisions": True,
-        "max_revisions": 2,
-        "allow_skip": False,
-        "show_prompt": True,
-        "read_only_prompt": False,
-        "prompt_conditions": [
+Solution: [Answer A, B...N]\n\n"""
+            },
             {
                 "condition": {"original_content_only": True},
                 "prompt": "Please create questions based solely on the provided text. \n\n"
@@ -138,7 +128,20 @@ Solution: [Answer A, B...N]\n\n""",
                 "condition": {"output_format": "OLX"},
                 "prompt": "Please write your MCQs in Open edX OLX format\n\n"
             }
-        ]
+        ],
+        "ai_response": True,
+        "scored_phase": True,
+        "minimum_score": 0,
+        "rubric": """
+            1. Questions
+                1 points - The user generates any questions
+                0 points - The user does not generate any questions
+        """,
+        "allow_revisions": True,
+        "max_revisions": 2,
+        "allow_skip": False,
+        "show_prompt": True,
+        "read_only_prompt": False
     },
     "phase2": {
         "name": "Configure Questions",
@@ -167,14 +170,6 @@ Solution: [Answer A, B...N]\n\n""",
     }
 }
 
-def prompt_conditionals(prompt, user_input, phase_name=None):
-    additional_prompts = []
-    for condition in PHASES[phase_name]["prompt_conditions"]:
-        condition_clause = condition["condition"]
-        if all(user_input.get(key) == value for key, value in condition_clause.items()):
-            additional_prompts.append(condition["prompt"])
-    return prompt + "\n".join(additional_prompts)
-    
 selected_llm = "gpt-3.5-turbo"
 
 

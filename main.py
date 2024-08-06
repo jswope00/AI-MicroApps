@@ -263,10 +263,23 @@ def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
             st.write(f"**Anthropic Error Response: {selected_llm}**")
             st.error(f"Error: {e}")
 
+def prompt_conditionals(user_input, phase_name=None):
+    phase = PHASES[phase_name]
+    # Handle user_prompt as string or list
+    if isinstance(phase["user_prompt"], str):
+        base_prompt = phase["user_prompt"]
+    else:
+        additional_prompts = []
+        for item in phase["user_prompt"]:
+            condition_clause = item["condition"]
+            if all(user_input.get(key) == value for key, value in condition_clause.items()):
+                additional_prompts.append(item["prompt"])
+        base_prompt = "\n".join(additional_prompts)
+    return base_prompt
 
 def format_user_prompt(prompt, user_input,phase_name=None):
     try:
-        prompt = prompt_conditionals(prompt,user_input,phase_name)
+        prompt = prompt_conditionals(user_input,phase_name)
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except:

@@ -51,30 +51,20 @@ PHASES = {
             }
         },
         "phase_instructions": "",
-        "user_prompt": "",
+        "user_prompt": [
+                    {
+                        "condition": {"system": "Western"},
+                        "prompt": """My name is {name}. I was born on {month} {day}, {year}. Please provide me my Western zodiac symbol, and give a short horoscope for the day."""
+                    },
+                    {
+                        "condition": {"system": "Chinese"},
+                        "prompt": """My name is {name}. I was born in the year {year}. Please provide me my Chinese zodiac symbol, and give a short horoscope for the day."""
+                    }
+                ],
         "show_prompt": True,
-        "allow_skip": True,
-        "prompt_conditions": [
-            {
-                "condition": {"system": "Western"},
-                "prompt": """My name is {name}. I was born on {month} {day}, {year}. Please provide me my Western zodiac symbol, and give a short horoscope for the day."""
-            },
-            {
-                "condition": {"system": "Chinese"},
-                "prompt": """My name is {name}. I was born in the year {year}. Please provide me my Chinese zodiac symbol, and give a short horoscope for the day."""
-            }
-        ]
+        "allow_skip": True
     }
 }
-
-def prompt_conditionals(prompt, user_input, phase_name=None):
-    additional_prompts = []
-    for condition in PHASES[phase_name]["prompt_conditions"]:
-        condition_clause = condition["condition"]
-        if all(user_input.get(key) == value for key, value in condition_clause.items()):
-            additional_prompts.append(condition["prompt"])
-    return prompt + "\n".join(additional_prompts)
-
 
 selected_llm = "gpt-4o-mini"
 

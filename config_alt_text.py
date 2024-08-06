@@ -47,11 +47,12 @@ PHASES = {
             }
         },
         "phase_instructions": "Generate the alt text for the image urls and uploads",
-        "user_prompt": """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
-                - Aim to put the most important information at the beginning.""",
-        "show_prompt": True,
-        "allow_skip": False,
-        "prompt_conditions": [
+        "user_prompt": [
+            {
+                "condition": {"important_text": False,"complex_image": False},
+                "prompt": """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
+                - Aim to put the most important information at the beginning."""
+            },
             {
                 "condition": {"complex_image": True},
                 "prompt": """I am sending you one or more complex images. Please provide a short description to identify the image, and a long description to represent the essential information conveyed by the image. \n
@@ -67,18 +68,11 @@ PHASES = {
                 - Aim to put the most important information at the beginning. \n
                 - Make sure to include any text in this image as part of the alt text"""
             }
-        ]
+        ],
+        "show_prompt": True,
+        "allow_skip": False,
     }
 }
-
-# Function to handle prompt conditionals based on checkbox values
-def prompt_conditionals(prompt, user_input, phase_name=None):
-    additional_prompts = []
-    for condition in PHASES[phase_name]["prompt_conditions"]:
-        condition_clause = condition["condition"]
-        if all(user_input.get(key) == value for key, value in condition_clause.items()):
-            additional_prompts.append(condition["prompt"])
-    return prompt + "\n".join(additional_prompts)
 
 selected_llm = "gpt-4o"
 
