@@ -110,6 +110,7 @@ def build_field(phase_name, fields):
         field_caption = field.get("caption", "")
         field_allowed_files = field.get("allowed_files", None)
         field_multiple_files = field.get("multiple_files", False)
+        field_label_visibility = field.get("label_visibility", None)
 
         kwargs = {}
         if field_label:
@@ -150,6 +151,8 @@ def build_field(phase_name, fields):
             kwargs['type'] = field_allowed_files
         if field_multiple_files:
             kwargs['accept_multiple_files'] = field_multiple_files
+        if field_label_visibility:
+            kwargs['label_visibility'] = field_label_visibility
 
         key = f"{phase_name}_phase_status"
 
