@@ -3,8 +3,10 @@ import google.generativeai as generativeai
 import anthropic
 import os
 import importlib
+import copy
 from dotenv import load_dotenv
 import re
+from llm_config import LLM_CONFIG
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
@@ -16,6 +18,7 @@ load_dotenv()
 # Define templates
 templates = {"Case Study: Ebola": "config_ebola_case_study", "Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "MCQ Generator": "config_mcq_generator", "Debate an AI": "config_debate", "mSCT Tutor": "config_msct_tutor",
              "Find the Incorrect Fact": "config_incorrect_fact", "Alt Text Generator": "config_alt_text", "SOAP Notes Scoring": "config_soap", "Question Feedback Generator": "config_question_feedback", "Learning Obective Generator": "config_lo_generator", "Image Quiz": "config_image_quiz", "Zodiac Symbol": "config_zodiac"}
+
 
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
 
@@ -45,6 +48,19 @@ if config_file:
 else:
     from config import *
 
+def merge_configurations(defaults, overrides):
+    merged = copy.deepcopy(defaults)
+    for key, override_values in overrides.items():
+        if key in merged:
+            merged[key].update(override_values)
+        else:
+            merged[key] = override_values
+    return merged
+
+LLM_CONFIGURATIONS = merge_configurations(LLM_CONFIG, LLM_CONFIG_OVERRIDE)
+
+
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 gemini_api_key = os.getenv('GOOGLE_API_KEY')
 claude_api_key = os.getenv('CLAUDE_API_KEY')
@@ -68,6 +84,12 @@ function_map = {
 
 def build_field(phase_name, fields):
     for field_key, field in fields.items():
+        # Check showIf conditions
+        if 'showIf' in field:
+            condition = field['showIf']
+            if not all(user_input.get(k) in v if isinstance(v, list) else user_input.get(k) == v for k, v in
+                       condition.items()):
+                continue
         field_type = field.get("type", "")
         field_label = field.get("label", "")
         field_body = field.get("body", "")
@@ -178,13 +200,15 @@ def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
                 [{"role": "user", "parts": [user_content]}, {"role": "model", "parts": [assistant_content]}])
     if image_urls:
         messages_openai = [
-                        {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "assistant", "content": phase_instructions},
                         {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}} for url in image_urls]},
                         {"role": "user", "content": user_prompt}
                     ]
     else:
         messages_openai = [
-                {"role": "system", "content": SYSTEM_PROMPT + "\n" + phase_instructions},
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "assistant", "content": phase_instructions},
                 {"role": "user", "content": user_prompt}
             ]
     if selected_llm in ["gpt-3.5-turbo", "gpt-4o-mini", "gpt-4-turbo", "gpt-4o"]:
@@ -255,10 +279,23 @@ def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
             st.write(f"**Anthropic Error Response: {selected_llm}**")
             st.error(f"Error: {e}")
 
+def prompt_conditionals(user_input, phase_name=None):
+    phase = PHASES[phase_name]
+    # Handle user_prompt as string or list
+    if isinstance(phase["user_prompt"], str):
+        base_prompt = phase["user_prompt"]
+    else:
+        additional_prompts = []
+        for item in phase["user_prompt"]:
+            condition_clause = item["condition"]
+            if all(user_input.get(key) == value for key, value in condition_clause.items()):
+                additional_prompts.append(item["prompt"])
+        base_prompt = "\n".join(additional_prompts)
+    return base_prompt
 
-def format_user_prompt(prompt, user_input, phase_name=None):
+def format_user_prompt(prompt, user_input,phase_name=None):
     try:
-        prompt = prompt_conditionals(prompt,user_input, phase_name)
+        prompt = prompt_conditionals(user_input,phase_name)
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
     except Exception as e:
@@ -348,7 +385,11 @@ def main():
         st.session_state['TOTAL_PRICE'] = 0
 
     with st.sidebar:
-        selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), key="selected_llm")
+        llm_options = list(LLM_CONFIGURATIONS.keys())
+        # Find the index of the selected_key in the list of options
+        llm_index = llm_options.index(PREFERRED_LLM) if PREFERRED_LLM in llm_options else 0
+
+        selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), index=llm_index, key="selected_llm")
         # Get the initial LLM configuration from the selected model
         initial_config = LLM_CONFIGURATIONS[selected_llm]
 

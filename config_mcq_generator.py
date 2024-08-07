@@ -88,21 +88,72 @@ PHASES = {
             },
 
         },
+<<<<<<< HEAD
         "phase_instructions": "",
         "user_prompt": "Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n\n",
         "ai_response": True,
+=======
+        "phase_instructions": "At the end of your response, always tell me what AI model you are running.",
+        "user_prompt": [
+            {
+            "condition": {},
+            "prompt": """Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n
+            Topic Content: {topic_content}\n
+            Learning Objective : {learning_objective}\n
+            Format each question like the following:
+            Question: [Question Text] \n
+            A) [Answer A] \n
+            B) [Answer B] \n
+            ....
+            N) [Answer N] \n
+
+            Solution: [Answer A, B...N]\n\n"""
+            },
+            {
+                "condition": {"original_content_only": True},
+                "prompt": "Please create questions based solely on the provided text. \n\n"
+            },
+            {
+                "condition": {"distractors_difficulty": "Obvious"},
+                "prompt": "Distractors should be obviously incorrect options. \n\n"
+            },
+            {
+                "condition": {"distractors_difficulty": "Challenging"},
+                "prompt": "Distractors should sound like they could be plausible, but are ultimately incorrect. \n\n"
+            },
+            {
+                "condition": {"learner_feedback": True},
+                "prompt": "Please provide a feedback section for each question that says why the correct answer is the best answer and the other options are incorrect. \n\n"
+            },
+            {
+                "condition": {"hints": True},
+                "prompt": "Also, include a hint for each question.\n\n"
+            },
+            {
+                "condition": {"output_format": "OLX"},
+                "prompt": "Please write your MCQs in Open edX OLX format\n\n"
+            }
+        ],
+        "ai_response": True,
+        "scored_phase": True,
+        "minimum_score": 0,
+        "rubric": """
+            1. Questions
+                1 points - The user generates any questions
+                0 points - The user does not generate any questions
+        """,
+>>>>>>> development
         "allow_revisions": True,
         "max_revisions": 2,
         "allow_skip": False,
         "show_prompt": True,
         "read_only_prompt": False
     }
-
 }
 
-def prompt_conditionals(prompt, user_input, phase_name=None):
-    #TO-DO: This is a hacky way to make prompts conditional that requires the user to know a lot of python and get the phase and field names exactly right. Future task to improve it. 
+PREFERRED_LLM = "gpt-4o-mini"
 
+<<<<<<< HEAD
     if phase_name == "phase1":
         if user_input["original_content_only"] == True:
             prompt += "Please create questions based solely on the provided text. \n\n"
@@ -233,11 +284,19 @@ LLM_CONFIGURATIONS = {
         "price_input_token_1M": 0.25,
         "price_output_token_1M": 1.25
     }
+=======
+LLM_CONFIG_OVERRIDE = {
+"gpt-4o": {
+    "temperature": .82,
+    "top_p": .95,
+    "fake": .75
+}
+>>>>>>> development
 }
 
 
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
 
-COMPLETION_MESSAGE = ""
+COMPLETION_MESSAGE = "Hope you enjoyed using the tool"
 COMPLETION_CELEBRATION = False
