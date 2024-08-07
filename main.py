@@ -513,7 +513,7 @@ def main():
 
         if submit_button:
             for field_key, field in fields.items():
-                st_store(user_input[field_key], PHASE_NAME, "user_input", field_key)
+                st_store(user_input.get(field_key,""), PHASE_NAME, "user_input", field_key)
 
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
 
