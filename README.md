@@ -1,5 +1,9 @@
 # AI-Microapp-Template
 
+## Demo
+
+https://ai-microapps.streamlit.app
+
 ## Overview
 
 This Python application provides a template for creating AI-powered education apps like question generators, debate exercises, critical thinking assessments, and more. Apps can be configured by modifying python configuration files, without needing to touch or understand the core code. And multiple apps can be created by creating multiple configuration files. Apps are built to be customized for your specific use case and shared with others. 
