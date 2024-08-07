@@ -92,21 +92,15 @@ PHASES = {
         "user_prompt": [
             {
             "condition": {},
-            "prompt": """Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n
-            Topic Content: {topic_content}\n
-            Learning Objective : {learning_objective}\n
-            Format each question like the following:
-            Question: [Question Text] \n
-            A) [Answer A] \n
-            B) [Answer B] \n
-            ....
-            N) [Answer N] \n
-
-            Solution: [Answer A, B...N]\n\n"""
+            "prompt": "Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n",
             },
             {
                 "condition": {"original_content_only": True},
                 "prompt": "Please create questions based solely on the provided text. \n\n"
+            },
+            {
+                "condition": {"original_content_only": False},
+                "prompt": "Please create questions that incorporate both the provided text as well as your knowledge of the topic. \n\n"
             },
             {
                 "condition": {"distractors_difficulty": "Obvious"},
@@ -115,6 +109,10 @@ PHASES = {
             {
                 "condition": {"distractors_difficulty": "Challenging"},
                 "prompt": "Distractors should sound like they could be plausible, but are ultimately incorrect. \n\n"
+            },
+            {
+                "condition": {"learning_objective": ""},
+                "prompt": "Focus on meeting the following learning objective(s): {learning_objective}\n"
             },
             {
                 "condition": {"learner_feedback": True},
@@ -127,16 +125,26 @@ PHASES = {
             {
                 "condition": {"output_format": "OLX"},
                 "prompt": "Please write your MCQs in Open edX OLX format\n\n"
+            },
+            {
+                "condition": {},
+                "prompt": """Format each question like the following:
+            Question: [Question Text] \n
+            A) [Answer A] \n
+            B) [Answer B] \n
+            ....
+            N) [Answer N] \n
+
+            Solution: [Answer A, B...N]\n\n"""
+            },
+            {
+                "condition": {},
+                "prompt": """Here is the content/topic:\n
+                ================
+                {topic_content}"""
             }
         ],
         "ai_response": True,
-        "scored_phase": True,
-        "minimum_score": 0,
-        "rubric": """
-            1. Questions
-                1 points - The user generates any questions
-                0 points - The user does not generate any questions
-        """,
         "allow_revisions": True,
         "max_revisions": 2,
         "allow_skip": False,
@@ -149,9 +157,8 @@ PREFERRED_LLM = "gpt-4o-mini"
 
 LLM_CONFIG_OVERRIDE = {
 "gpt-4o": {
-    "temperature": .82,
-    "top_p": .95,
-    "fake": .75
+    "temperature": .95,
+    "top_p": .95
 }
 }
 
