@@ -3,8 +3,10 @@ import google.generativeai as generativeai
 import anthropic
 import os
 import importlib
+import copy
 from dotenv import load_dotenv
 import re
+from llm_config import LLM_CONFIG
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
@@ -44,6 +46,19 @@ if config_file:
             globals()[attr] = getattr(config_module, attr)
 else:
     from config import *
+
+def merge_configurations(defaults, overrides):
+    merged = copy.deepcopy(defaults)
+    for key, override_values in overrides.items():
+        if key in merged:
+            merged[key].update(override_values)
+        else:
+            merged[key] = override_values
+    return merged
+
+LLM_CONFIGURATIONS = merge_configurations(LLM_CONFIG, LLM_CONFIG_OVERRIDE)
+
+
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 gemini_api_key = os.getenv('GOOGLE_API_KEY')
@@ -368,7 +383,11 @@ def main():
         st.session_state['TOTAL_PRICE'] = 0
 
     with st.sidebar:
-        selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), key="selected_llm")
+        llm_options = list(LLM_CONFIGURATIONS.keys())
+        # Find the index of the selected_key in the list of options
+        llm_index = llm_options.index(PREFERRED_LLM) if PREFERRED_LLM in llm_options else 0
+
+        selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), index=llm_index, key="selected_llm")
         # Get the initial LLM configuration from the selected model
         initial_config = LLM_CONFIGURATIONS[selected_llm]
 

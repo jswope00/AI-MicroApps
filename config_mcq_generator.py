@@ -89,20 +89,20 @@ PHASES = {
 
         },
         "phase_instructions": "At the end of your response, always tell me what AI model you are running.",
-"user_prompt": [
+        "user_prompt": [
             {
-                "condition": {},
-                "prompt": """Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n
-Topic Content: {topic_content}\n
-Learning Objective : {learning_objective}\n
-Format each question like the following:
-Question: [Question Text] \n
-A) [Answer A] \n
-B) [Answer B] \n
-....
-N) [Answer N] \n
+            "condition": {},
+            "prompt": """Please write {questions_num} {question_level} level multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, based on text that I will provide.\n
+            Topic Content: {topic_content}\n
+            Learning Objective : {learning_objective}\n
+            Format each question like the following:
+            Question: [Question Text] \n
+            A) [Answer A] \n
+            B) [Answer B] \n
+            ....
+            N) [Answer N] \n
 
-Solution: [Answer A, B...N]\n\n"""
+            Solution: [Answer A, B...N]\n\n"""
             },
             {
                 "condition": {"original_content_only": True},
@@ -142,120 +142,17 @@ Solution: [Answer A, B...N]\n\n"""
         "allow_skip": False,
         "show_prompt": True,
         "read_only_prompt": False
-    },
-    "phase2": {
-        "name": "Configure Questions",
-        "fields": {
-            "name": {
-                "type": "text_input",
-                "label": "What is your name?",
-                "value": "John"
-            }
-        },
-        "phase_instructions": "Respond in Spanish.",
-        "user_prompt": "Say hello to me. My name is {name}",
-        "ai_response": True,
-        "scored_phase": True,
-        "minimum_score": 0,
-        "rubric": """
-            1. Name
-                1 points - The user gives you their name
-                0 points - The user does not give you their name. 
-        """,
-        "allow_revisions": True,
-        "max_revisions": 2,
-        "allow_skip": False,
-        "show_prompt": True,
-        "read_only_prompt": False
     }
 }
 
-selected_llm = "gpt-3.5-turbo"
+PREFERRED_LLM = "gpt-4o-mini"
 
-
-LLM_CONFIGURATIONS = {
-    "gpt-3.5-turbo": {
-        "model": "gpt-3.5-turbo-0125",
-        "frequency_penalty": 0,
-        "max_tokens": 1000,
-        "presence_penalty": 0,
-        "temperature": 1,
-        "top_p": 1,
-        "price_input_token_1M":0.50,
-        "price_output_token_1M":1.50
-    },
-    "gpt-4-turbo": {
-        "model": "gpt-4-turbo",
-        "frequency_penalty": 0,
-        "max_tokens": 1000,
-        "presence_penalty": 0,
-        "temperature": 1,
-        "top_p": 1,
-        "price_input_token_1M":10,
-        "price_output_token_1M":30
-    },
-    "gpt-4o": {
-        "model": "gpt-4o",
-        "frequency_penalty": 0,
-        "max_tokens": 250,
-        "presence_penalty": 0,
-        "temperature": 1,
-        "top_p": 1,
-        "price_input_token_1M":5,
-        "price_output_token_1M":15
-    },
-    "gemini-1.0-pro": {
-        "model": "gemini-1.0-pro",
-        "temperature": 1,
-        "top_p": 0.95,
-        "max_tokens": 1000,
-        "price_input_token_1M":.5,
-        "price_output_token_1M":1.5
-    },
-    "gemini-1.5-flash": {
-        "model": "gemini-1.5-flash",
-        "temperature": 1,
-        "top_p": 0.95,
-        "max_tokens": 1000,
-        "price_input_token_1M":.35,
-        "price_output_token_1M":1.05
-    },
-    "gemini-1.5-pro": {
-        "model": "gemini-1.5-pro",
-        "temperature": 1,
-        "top_p": 0.95,
-        "max_tokens": 1000,
-        "price_input_token_1M":3.5,
-        "price_output_token_1M":10.50
-    },
-    "claude-3.5-sonnet": {
-        "model": "claude-3-5-sonnet-20240620",
-        "max_tokens": 1000,
-        "temperature": 1,
-        "price_input_token_1M": 3,
-        "price_output_token_1M": 15
-    },
-    "claude-opus": {
-        "model": "claude-3-opus-20240229",
-        "max_tokens": 1000,
-        "temperature": 1,
-        "price_input_token_1M": 15,
-        "price_output_token_1M": 75
-    },
-    "claude-sonnet": {
-        "model": "claude-3-sonnet-20240229",
-        "max_tokens": 1000,
-        "temperature": 1,
-        "price_input_token_1M": 3,
-        "price_output_token_1M": 15
-    },
-    "claude-haiku": {
-        "model": "claude-3-haiku-20240307",
-        "max_tokens": 1000,
-        "temperature": 1,
-        "price_input_token_1M": 0.25,
-        "price_output_token_1M": 1.25
-    }
+LLM_CONFIG_OVERRIDE = {
+"gpt-4o": {
+    "temperature": .82,
+    "top_p": .95,
+    "fake": .75
+}
 }
 
 SCORING_DEBUG_MODE = True
