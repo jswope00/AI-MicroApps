@@ -1,27 +1,35 @@
-import openai
-import google.generativeai as generativeai
-import anthropic
 import os
 import importlib
 import copy
-from dotenv import load_dotenv
 import re
 from llm_config import LLM_CONFIG
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
 import base64
+from handlers import HANDLERS
+import mimetypes
 
-load_dotenv()
+# Define templates for different configurations
+templates = {
+    "Alt Text Generator": "config_alt_text",
+    "Case Study: Ebola": "config_ebola_case_study",
+    "Demo 1": "config_demo1",
+    "Demo 2": "config_demo2",
+    "ai_assessment": "config",
+    "MCQ Generator": "config_mcq_generator",
+    "Debate an AI": "config_debate",
+    "mSCT Tutor": "config_msct_tutor",
+    "Find the Incorrect Fact": "config_incorrect_fact",
+    "SOAP Notes Scoring": "config_soap",
+    "Question Feedback Generator": "config_question_feedback",
+    "Learning Objective Generator": "config_lo_generator",
+    "Image Quiz": "config_image_quiz",
+    "Zodiac Symbol": "config_zodiac"
+}
 
-
-# Define templates
-templates = {"Case Study: Ebola": "config_ebola_case_study", "Demo 1": "config_demo1", "Demo 2": "config_demo2", "ai_assessment": "config", "MCQ Generator": "config_mcq_generator", "Debate an AI": "config_debate", "mSCT Tutor": "config_msct_tutor",
-             "Find the Incorrect Fact": "config_incorrect_fact", "Alt Text Generator": "config_alt_text", "SOAP Notes Scoring": "config_soap", "Question Feedback Generator": "config_question_feedback", "Learning Obective Generator": "config_lo_generator", "Image Quiz": "config_image_quiz", "Zodiac Symbol": "config_zodiac"}
-
-
+# Select template from the sidebar
 selected_template = st.sidebar.selectbox("Select template", templates.keys())
-
 
 if "template" not in st.session_state or st.session_state.template != selected_template:
     st.session_state.template = selected_template
@@ -59,11 +67,6 @@ def merge_configurations(defaults, overrides):
 
 LLM_CONFIGURATIONS = merge_configurations(LLM_CONFIG, LLM_CONFIG_OVERRIDE)
 
-
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-gemini_api_key = os.getenv('GOOGLE_API_KEY')
-claude_api_key = os.getenv('CLAUDE_API_KEY')
 
 user_input = {}
 function_map = {
@@ -182,105 +185,43 @@ def build_field(phase_name, fields):
         ):
             user_input[field_key] = my_input_function(**kwargs)
 
+def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image_urls=None):
+    """Execute LLM completions using the selected model."""
+    if selected_llm not in LLM_CONFIG:
+        raise ValueError(f"Selected model '{selected_llm}' not found in configuration.")
 
-def call_openai_completions(phase_instructions, user_prompt, image_urls=None):
-    selected_llm = st.session_state['selected_llm']
-    llm_configuration = st.session_state['llm_config']
+    model_config = LLM_CONFIG[selected_llm]
+    family = model_config["family"]
     chat_history = st.session_state["chat_history"]
 
-    if image_urls and selected_llm not in ["gpt-4o-mini", "gpt-4-turbo", "gpt-4o"]:
-        return "ERROR: This model does not support image recognition"
+    context = {
+        "SYSTEM_PROMPT": SYSTEM_PROMPT,
+        "phase_instructions": phase_instructions,
+        "user_prompt": user_prompt,
+        "supports_image": model_config["supports_image"],
+        "image_urls": image_urls,
+        "model": model_config["model"],
+        "max_tokens": model_config["max_tokens"],
+        "temperature": model_config["temperature"],
+        "top_p": model_config["top_p"],
+        "frequency_penalty": model_config["frequency_penalty"],
+        "presence_penalty": model_config["presence_penalty"],
+        "price_input_token_1M": model_config["price_input_token_1M"],
+        "price_output_token_1M": model_config["price_output_token_1M"],
+        "TOTAL_PRICE": 0,
+        "chat_history": chat_history
+    }
 
-    message_history = []
-    message_history_gemini = []
-    if len(chat_history) > 0:
-        for history in chat_history:
-            user_content = history["user"]
-            assistant_content = history["assistant"]
-            message_history.extend(
-                [{"role": "user", "content": user_content}, {"role": "assistant", "content": assistant_content}])
-            message_history_gemini.extend(
-                [{"role": "user", "parts": [user_content]}, {"role": "model", "parts": [assistant_content]}])
-    if image_urls:
-        messages_openai = [
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {"role": "assistant", "content": phase_instructions},
-                        {"role": "user", "content": [{"type": "image_url", "image_url": {"url": url}} for url in image_urls]},
-                        {"role": "user", "content": user_prompt}
-                    ]
+    handler = HANDLERS.get(family)
+    if handler:
+        try:
+            result = handler(context)
+        except Exception as e:
+            raise RuntimeError(f"Error in handling the LLM request: {e}")
     else:
-        messages_openai = [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "assistant", "content": phase_instructions},
-                {"role": "user", "content": user_prompt}
-            ]
-    if selected_llm in ["gpt-3.5-turbo", "gpt-4o-mini", "gpt-4-turbo", "gpt-4o"]:
-        try:
-            response = openai.chat.completions.create(
-                model=llm_configuration["model"],
-                messages= message_history+messages_openai,
-                max_tokens=llm_configuration.get("max_tokens", 1000),
-                temperature=llm_configuration.get("temperature", 1),
-                top_p=llm_configuration.get("top_p", 1),
-                frequency_penalty=llm_configuration.get("frequency_penalty", 0),
-                presence_penalty=llm_configuration.get("presence_penalty", 0)
-            )
-            input_price = int(response.usage.prompt_tokens) * llm_configuration["price_input_token_1M"] / 1000000
-            output_price = int(response.usage.completion_tokens) * llm_configuration[
-                "price_output_token_1M"] / 1000000
-            total_price = input_price + output_price
-            st.session_state['TOTAL_PRICE'] += total_price
-            return response.choices[0].message.content
-        except Exception as e:
-            st.write(f"**OpenAI Error Response:** {selected_llm}")
-            st.error(f"Error: {e}")
-    if selected_llm in ["gemini-1.0-pro", "gemini-1.5-flash", "gemini-1.5-pro"]:
-        try:
-            generativeai.configure(api_key=gemini_api_key)
-            generation_config = {
-                "temperature": llm_configuration["temperature"],
-                "top_p": llm_configuration.get("top_p", 1),
-                "max_output_tokens": llm_configuration.get("max_tokens", 1000),
-                "response_mime_type": "text/plain",
-            }
-            model = generativeai.GenerativeModel(
-                llm_configuration["model"],
-                generation_config=generation_config,
-                system_instruction=SYSTEM_PROMPT + "\n" + phase_instructions,
-            )
-            chat_session = model.start_chat(
-                history= message_history_gemini
-            )
-            gemini_response = chat_session.send_message(user_prompt)
-            gemini_response_text = gemini_response.text
+        raise NotImplementedError(f"No handler implemented for model family '{family}'")
 
-            return gemini_response_text
-        except Exception as e:
-            st.write("**Gemini Error Response:**")
-            st.error(f"Error: {e}")
-    if selected_llm in ["claude-opus", "claude-sonnet", "claude-haiku", "claude-3.5-sonnet"]:
-        try:
-            client = anthropic.Anthropic(api_key=claude_api_key)
-            anthropic_response = client.messages.create(
-                model=llm_configuration["model"],
-                max_tokens=llm_configuration["max_tokens"],
-                temperature=llm_configuration["temperature"],
-                system=SYSTEM_PROMPT + "\n" + phase_instructions,
-                messages= message_history+[
-                    {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
-                ]
-            )
-            input_price = int(anthropic_response.usage.input_tokens) * llm_configuration[
-                "price_input_token_1M"] / 1000000
-            output_price = int(anthropic_response.usage.output_tokens) * llm_configuration[
-                "price_output_token_1M"] / 1000000
-            total_price = input_price + output_price
-            response_cleaned = '\n'.join([block.text for block in anthropic_response.content if block.type == 'text'])
-            st.session_state['TOTAL_PRICE'] += total_price
-            return response_cleaned
-        except Exception as e:
-            st.write(f"**Anthropic Error Response: {selected_llm}**")
-            st.error(f"Error: {e}")
+    return result
 
 def prompt_conditionals(user_input, phase_name=None):
     phase = PHASES[phase_name]
@@ -376,9 +317,13 @@ def find_image_urls(fields):
                 uploaded_files = [uploaded_files]
             for uploaded_file in uploaded_files:
                 if uploaded_file:
+                    # Read and encode file content
                     file_content = uploaded_file.read()
+                    mime_type, _ = mimetypes.guess_type(uploaded_file.name)
+                    if not mime_type:
+                        mime_type = 'application/octet-stream'
                     base64_encoded_content = base64.b64encode(file_content).decode('utf-8')
-                    image_url = f"data:image/jpeg;base64,{base64_encoded_content}"
+                    image_url = f"data:{mime_type};base64,{base64_encoded_content}"
                     image_urls.append(image_url)
     return image_urls
 
@@ -526,9 +471,9 @@ def main():
                 if PHASE_DICT.get("scored_phase", False):
                     if "rubric" in PHASE_DICT:
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                        ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_urls)
+                        ai_feedback = execute_llm_completions(selected_llm,phase_instructions, formatted_user_prompt, image_urls)
                         st.info(body=ai_feedback, icon="🤖")
-                        ai_score = call_openai_completions(scoring_instructions, ai_feedback)
+                        ai_score = execute_llm_completions(selected_llm,scoring_instructions, ai_feedback)
                         st.info(ai_score, icon="🤖")
                         st_store(ai_feedback, PHASE_NAME, "ai_response")
                         st_store(ai_score, PHASE_NAME, "ai_score_debug")
@@ -553,7 +498,7 @@ def main():
                     else:
                         st.error('You need to include a rubric for a scored phase', icon="🚨")
                 else:
-                    ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt, image_urls)
+                    ai_feedback = execute_llm_completions(selected_llm,phase_instructions, formatted_user_prompt, image_urls)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     chat_history_entry = {
                         "user": formatted_user_prompt,
@@ -615,7 +560,7 @@ def main():
 
                                 formatted_user_prompt += st.session_state['additional_prompt']
 
-                                ai_feedback = call_openai_completions(phase_instructions, formatted_user_prompt)
+                                ai_feedback = execute_llm_completions(selected_llm,phase_instructions, formatted_user_prompt)
 
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
                                     st.session_state[f"{PHASE_NAME}_revision_count"]))
