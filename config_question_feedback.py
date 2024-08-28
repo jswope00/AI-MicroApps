@@ -43,18 +43,53 @@ PHASES = {
                 "height": 200,
                 "placeholder": "",
             },
-            "audience": {
-                "label": "Describe the audience",
-                "type": "selectbox",
-                "options": ['University', 'High School', 'Grade School']
+            "hints": {
+                "type": "checkbox",
+                "label": "Provide Hints?",
+                "value": False,
             },
-
+            "num_hints": {
+                "type": "slider",
+                "label": "Number of Hints",
+                "min_value": 1,
+                "max_value": 4,
+                "showIf": {"hints": True}
+            }
         },
         "phase_instructions": "",
-        "user_prompt": "Please provide feedback for the following question: {question_text}",
-        "allow_skip": True,
+        "user_prompt": "",
+        "show_prompt": True,
+        "read_only_prompt": False,
+        "user_prompt": [
+            {
+                "condition": {},
+                "prompt": "Please provide feedback"
+            },
+            {
+                "condition": {"hints": True},
+                "prompt": "and {num_hints} hints"
+            },
+            {
+                "condition": {},
+                "prompt": "for the following questions(s): \n {question_text}"
+            },
+            {
+                "condition": {},
+                "prompt": "Adjust your tone based on the tone of the question text."
+            },
+            {
+                "condition": {},
+                "prompt": """If provided, please consider the source material in your hints and feedback. If no source material is provided, ignore this: 
+Source Material:
+{source_material}
+                """,
+            },
+        ]
+
     }
- 
+
+
+
 }
 
 PREFERRED_LLM = "gpt-4o-mini"
@@ -63,5 +98,5 @@ LLM_CONFIG_OVERRIDE = {}
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
 
-COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
+COMPLETION_MESSAGE = "Immediate feedback is great for students!"
 COMPLETION_CELEBRATION = False

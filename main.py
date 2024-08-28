@@ -10,8 +10,14 @@ import base64
 from handlers import HANDLERS
 import mimetypes
 
+st.set_page_config(page_title=None, page_icon="🤖", layout="centered", initial_sidebar_state="collapsed", menu_items=None)
+
 # Define templates for different configurations
 templates = {
+    "Essay Scoring:": "config_essay_scoring",
+    "Case Study: The Grand Horizon Hotel": "config_hotel_case_study",
+    "Question Feedback Generator": "config_question_feedback",
+    "LO Analyst": "config_lo_analyst",
     "Alt Text Generator": "config_alt_text",
     "Case Study: Ebola": "config_ebola_case_study",
     "Demo 1": "config_demo1",
@@ -22,7 +28,6 @@ templates = {
     "mSCT Tutor": "config_msct_tutor",
     "Find the Incorrect Fact": "config_incorrect_fact",
     "SOAP Notes Scoring": "config_soap",
-    "Question Feedback Generator": "config_question_feedback",
     "Learning Objective Generator": "config_lo_generator",
     "Image Quiz": "config_image_quiz",
     "Zodiac Symbol": "config_zodiac"
@@ -45,6 +50,8 @@ if "template" not in st.session_state or st.session_state.template != selected_t
     st.session_state['TOTAL_PRICE'] = 0
 
     st.rerun()
+
+
 
 config_file = templates[selected_template]
 
