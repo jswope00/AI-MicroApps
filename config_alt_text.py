@@ -42,7 +42,7 @@ PHASES = {
             "complex_image": {
                 "type": "checkbox",
                 "label": "My image is a complex image (chart, infographic, etc...)",
-                "value": True,
+                "value": False,
                 "help": "Complex images get both a short and a long description of the image"
             }
         },
@@ -67,6 +67,10 @@ PHASES = {
                 "prompt": """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
                 - Aim to put the most important information at the beginning. \n
                 - Make sure to include any text in this image as part of the alt text"""
+            },
+            {
+                "condition": {},
+                "prompt": "Here is the uploaded image(s) - {http_img_urls} and uploaded_files",
             }
         ],
         "show_prompt": True,
@@ -74,7 +78,7 @@ PHASES = {
     }
 }
 
-PREFERRED_LLM = "gpt-4o-mini"
+PREFERRED_LLM = "gpt-4o"
 LLM_CONFIG_OVERRIDE = {}
 
 SCORING_DEBUG_MODE = True
