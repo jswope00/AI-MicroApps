@@ -14,6 +14,7 @@ st.set_page_config(page_title=None, page_icon="🤖", layout="centered", initial
 
 # Define templates for different configurations
 templates = {
+    "My First App": "my_first_app",
     "Essay Scoring:": "config_essay_scoring",
     "Case Study: The Grand Horizon Hotel": "config_hotel_case_study",
     "Question Feedback Generator": "config_question_feedback",
