@@ -71,7 +71,7 @@ Modify the configuration fields, and replace the existing phases and fields with
 
 Edit main.py to add your config file to the `templates` JSON list in the following format: "Human Readable Name": "config_file_name". Note no `.py` at the end of the config file name. 
 
-Any changes to a config file require a restart of Streamilit
+Any changes to a config file require a restart of Streamlit
    - Ctrl + C to quit Streamlit from your terminal
    - To start Streamlit again:
 

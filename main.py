@@ -9,28 +9,30 @@ from streamlit_extras.let_it_rain import rain
 import base64
 from handlers import HANDLERS
 import mimetypes
+from master_config import *
 
-# Define templates for different configurations
-templates = {
-    "Alt Text Generator": "config_alt_text",
-    "Case Study: Ebola": "config_ebola_case_study",
-    "Demo 1": "config_demo1",
-    "Demo 2": "config_demo2",
-    "ai_assessment": "config",
-    "MCQ Generator": "config_mcq_generator",
-    "Debate an AI": "config_debate",
-    "mSCT Tutor": "config_msct_tutor",
-    "Find the Incorrect Fact": "config_incorrect_fact",
-    "SOAP Notes Scoring": "config_soap",
-    "Question Feedback Generator": "config_question_feedback",
-    "Learning Objective Generator": "config_lo_generator",
-    "Image Quiz": "config_image_quiz",
-    "Zodiac Symbol": "config_zodiac",
-    "Career Advisor": "config_career_path"
-}
+# Folder where config files are stored
+CONFIG_FOLDER = "config_files"
+
+# Apply master page configuration
+st.set_page_config(
+    page_title=PAGE_CONFIG.get("page_title", "AI MicroApps"),
+    page_icon=PAGE_CONFIG.get("page_icon", "🎯"),
+    layout=PAGE_CONFIG.get("layout", "wide"),
+    initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
+)
+
+# Optionally hide the sidebar completely
+if SIDEBAR_HIDDEN:
+    hide_sidebar_style = """
+        <style>
+            [data-testid="stSidebar"] {display: none;}
+        </style>
+    """
+    st.markdown(hide_sidebar_style, unsafe_allow_html=True)
 
 # Select template from the sidebar
-selected_template = st.sidebar.selectbox("Select template", templates.keys())
+selected_template = st.sidebar.selectbox("Select template", TEMPLATES.keys())
 
 if "template" not in st.session_state or st.session_state.template != selected_template:
     st.session_state.template = selected_template
@@ -47,17 +49,22 @@ if "template" not in st.session_state or st.session_state.template != selected_t
 
     st.rerun()
 
-config_file = templates[selected_template]
+config_file = TEMPLATES[selected_template]
 
 if config_file:
-    config_module = importlib.import_module(config_file)
+    module_path = f"{CONFIG_FOLDER}.{config_file}"
+    config_module = importlib.import_module(module_path)
     for attr in dir(config_module):
         if not attr.startswith("__"):
             globals()[attr] = getattr(config_module, attr)
 else:
     from config import *
 
+# Function to merge configuration dictionaries
 def merge_configurations(defaults, overrides):
+    """
+    Merges two dictionaries, with 'overrides' taking precedence over 'defaults'.
+    """
     merged = copy.deepcopy(defaults)
     for key, override_values in overrides.items():
         if key in merged:
@@ -67,7 +74,6 @@ def merge_configurations(defaults, overrides):
     return merged
 
 LLM_CONFIGURATIONS = merge_configurations(LLM_CONFIG, LLM_CONFIG_OVERRIDE)
-
 
 user_input = {}
 function_map = {
@@ -86,8 +92,12 @@ function_map = {
 }
 
 
+# Function to evaluate conditional logic
 def evaluate_conditions(user_input, condition):
-    """Evaluate whether a user_input meets the specified condition."""
+    """
+    Evaluates whether the 'user_input' meets the specified 'condition'.
+    Supports logical operators like $and, $or, $not, and comparison operators.
+    """
     if "$and" in condition:
         return all(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$and"])
     elif "$or" in condition:
@@ -125,7 +135,13 @@ def evaluate_conditions(user_input, condition):
                     return False
     return True
 
+
+# Function to build input fields based on configuration
 def build_field(phase_name, fields):
+    """
+    Builds the input fields for a given phase based on the 'fields' configuration.
+    Checks for 'showIf' conditions before displaying fields.
+    """
     for field_key, field in fields.items():
         # Check showIf conditions
         if 'showIf' in field:
@@ -136,15 +152,15 @@ def build_field(phase_name, fields):
         field_label = field.get("label", "")
         field_body = field.get("body", "")
         field_value = field.get("value", "")
-        field_index = field.get("index",None)
+        field_index = field.get("index", None)
         field_max_chars = field.get("max_chars", None)
         field_help = field.get("help", "")
         field_on_click = field.get("on_click", None)
         field_options = field.get("options", [])
         field_horizontal = field.get("horizontal", False)
-        field_min_value = field.get("min_value",None)
-        field_max_value = field.get("max_value",None)
-        field_step = field.get("step",None)
+        field_min_value = field.get("min_value", None)
+        field_max_value = field.get("max_value", None)
+        field_step = field.get("step", None)
         field_height = field.get("height", None)
         field_unsafe_html = field.get("unsafe_allow_html", False)
         field_placeholder = field.get("placeholder", "")
@@ -224,8 +240,12 @@ def build_field(phase_name, fields):
         ):
             user_input[field_key] = my_input_function(**kwargs)
 
+
+# Function to execute LLM completions
 def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image_urls=None):
-    """Execute LLM completions using the selected model."""
+    """
+    Executes LLM completions using the selected model.
+    """
     if selected_llm not in LLM_CONFIG:
         raise ValueError(f"Selected model '{selected_llm}' not found in configuration.")
 
@@ -261,7 +281,11 @@ def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image
         raise NotImplementedError(f"No handler implemented for model family '{family}'")
     return result
 
+# Function to apply conditional logic to prompts
 def prompt_conditionals(user_input, phase_name=None):
+    """
+    Applies conditional logic to determine the correct prompt based on 'user_input' and 'phase_name'.
+    """
     phase = PHASES[phase_name]
     if isinstance(phase["user_prompt"], str):
         base_prompt = phase["user_prompt"]
@@ -274,7 +298,11 @@ def prompt_conditionals(user_input, phase_name=None):
         base_prompt = "\n".join(additional_prompts)
     return base_prompt
 
+# Function to format user prompt with provided inputs
 def format_user_prompt(prompt, user_input, phase_name=None):
+    """
+    Formats the 'prompt' using the provided 'user_input' and applies any conditional logic.
+    """
     try:
         # Apply conditional logic to determine the correct prompt based on user_input and phase_name
         prompt = prompt_conditionals(user_input, phase_name)
@@ -287,7 +315,11 @@ def format_user_prompt(prompt, user_input, phase_name=None):
         return formatted_user_prompt
 
 
+# Function to store session state data
 def st_store(input, phase_name, phase_key, field_key=""):
+    """
+    Stores input data in the session state with keys generated from phase and field names.
+    """
     if field_key:
         key = f"{phase_name}_{field_key}_{phase_key}"
     else:
@@ -295,7 +327,11 @@ def st_store(input, phase_name, phase_key, field_key=""):
     st.session_state[key] = input
 
 
+# Function to build scoring instructions
 def build_scoring_instructions(rubric):
+    """
+    Builds scoring instructions based on the provided rubric for AI scoring.
+    """
     scoring_instructions = f"""
     Please score the user's previous response based on the following rubric: \n{rubric}
     \n\nPlease output your response as JSON, using this format: {{ "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }}
@@ -303,7 +339,11 @@ def build_scoring_instructions(rubric):
     return scoring_instructions
 
 
+# Function to extract score from AI response
 def extract_score(text):
+    """
+    Extracts the total score from the AI response text.
+    """
     pattern = r'"total":\s*"?(\d+)"?'
     match = re.search(pattern, text)
     if match:
@@ -312,7 +352,11 @@ def extract_score(text):
         return 0
 
 
+# Function to check if the score meets the minimum requirement
 def check_score(PHASE_NAME):
+    """
+    Checks if the AI score meets the minimum score requirement for the phase.
+    """
     score = st.session_state[f"{PHASE_NAME}_ai_score"]
     try:
         if score >= PHASES[PHASE_NAME]["minimum_score"]:
@@ -326,7 +370,11 @@ def check_score(PHASE_NAME):
         return False
 
 
+# Function to skip the current phase
 def skip_phase(PHASE_NAME, No_Submit=False):
+    """
+    Skips the current phase, optionally without submitting data.
+    """
     phase_fields = PHASES[PHASE_NAME]["fields"]
     for field_key in phase_fields:
         st_store(user_input[field_key], PHASE_NAME, "user_input", field_key)
@@ -336,7 +384,11 @@ def skip_phase(PHASE_NAME, No_Submit=False):
     st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
 
 
+# Function to display a celebration effect
 def celebration():
+    """
+    Displays a celebration effect using falling emojis.
+    """
     rain(
         emoji="🥳",
         font_size=54,
@@ -344,8 +396,12 @@ def celebration():
         animation_length=1,
     )
 
-# Function to find the image URL
+
+# Function to find image URLs for uploaded images
 def find_image_urls(fields):
+    """
+    Extracts and encodes image URLs from file uploads in the form fields.
+    """
     image_urls = []
     for key, value in fields.items():
         if 'image' in value:
@@ -366,7 +422,13 @@ def find_image_urls(fields):
                     image_urls.append(image_url)
     return image_urls
 
+
+# Main function to run the application
 def main():
+    """
+    The main entry point for the Streamlit application. Handles page setup, form generation,
+    prompt processing, and interaction with LLM for responses.
+    """
 
     if 'TOTAL_PRICE' not in st.session_state:
         st.session_state['TOTAL_PRICE'] = 0
@@ -376,7 +438,8 @@ def main():
         # Find the index of the selected_key in the list of options
         llm_index = llm_options.index(PREFERRED_LLM) if PREFERRED_LLM in llm_options else 0
 
-        selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), index=llm_index, key="selected_llm")
+        selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), index=llm_index,
+                                    key="selected_llm")
         # Get the initial LLM configuration from the selected model
         initial_config = LLM_CONFIGURATIONS[selected_llm]
 
@@ -387,13 +450,16 @@ def main():
                                      value=float(initial_config.get("temperature", 1.0)), step=0.01),
             "max_tokens": st.slider("Max Tokens", min_value=50, max_value=4000,
                                     value=int(initial_config.get("max_tokens", 1000)), step=50),
-            "top_p": st.slider("Top P", min_value=0.0, max_value=1.0, value=float(initial_config.get("top_p", 1.0)), step=0.1),
+            "top_p": st.slider("Top P", min_value=0.0, max_value=1.0, value=float(initial_config.get("top_p", 1.0)),
+                               step=0.1),
             "frequency_penalty": st.slider("Frequency Penalty", min_value=0.0, max_value=1.0,
                                            value=float(initial_config.get("frequency_penalty", 0.0)), step=0.01),
             "presence_penalty": st.slider("Presence Penalty", min_value=0.0, max_value=1.0,
                                           value=float(initial_config.get("presence_penalty", 0.0)), step=0.01),
-            "price_input_token_1M": st.number_input("Input Token Price 1M", value=initial_config.get("price_input_token_1M", 0)),
-            "price_output_token_1M": st.number_input("Output Token Price 1M", value=initial_config.get("price_output_token_1M", 0))
+            "price_input_token_1M": st.number_input("Input Token Price 1M",
+                                                    value=initial_config.get("price_input_token_1M", 0)),
+            "price_output_token_1M": st.number_input("Output Token Price 1M",
+                                                     value=initial_config.get("price_output_token_1M", 0))
         }
 
         if DISPLAY_COST:
@@ -455,8 +521,8 @@ def main():
                     height=100,
                     max_chars=50000,
                     value=format_user_prompt(user_prompt_template, user_input, PHASE_NAME),
-                    disabled=PHASE_DICT.get("read_only_prompt",False)
-                    )
+                    disabled=PHASE_DICT.get("read_only_prompt", False)
+                )
         else:
             formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME)
 
@@ -492,7 +558,7 @@ def main():
         # If there are any revisions, enter the loop
         if key in st.session_state and st.session_state[key]:
             z = 1
-            while z <= PHASE_DICT.get("max_revisions",10):
+            while z <= PHASE_DICT.get("max_revisions", 10):
                 key = f"{PHASE_NAME}_ai_response_revision_{z}"
                 if key in st.session_state and st.session_state[key]:
                     st.info(st.session_state[key], icon="🤖")
@@ -500,7 +566,7 @@ def main():
 
         if submit_button:
             for field_key, field in fields.items():
-                st_store(user_input.get(field_key,""), PHASE_NAME, "user_input", field_key)
+                st_store(user_input.get(field_key, ""), PHASE_NAME, "user_input", field_key)
 
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
 
@@ -510,9 +576,10 @@ def main():
                 if PHASE_DICT.get("scored_phase", False):
                     if "rubric" in PHASE_DICT:
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                        ai_feedback = execute_llm_completions(selected_llm,phase_instructions, formatted_user_prompt, image_urls)
+                        ai_feedback = execute_llm_completions(selected_llm, phase_instructions, formatted_user_prompt,
+                                                              image_urls)
                         st.info(body=ai_feedback, icon="🤖")
-                        ai_score = execute_llm_completions(selected_llm,scoring_instructions, ai_feedback)
+                        ai_score = execute_llm_completions(selected_llm, scoring_instructions, ai_feedback)
                         st.info(ai_score, icon="🤖")
                         st_store(ai_feedback, PHASE_NAME, "ai_response")
                         st_store(ai_score, PHASE_NAME, "ai_score_debug")
@@ -529,7 +596,8 @@ def main():
                         st.session_state["ai_score"] = ai_score
                         st.session_state['score'] = score
                         if check_score(PHASE_NAME):
-                            st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+                            st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1,
+                                                                    len(PHASES) - 1)
                             st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                             st.rerun()
                         else:
@@ -537,7 +605,8 @@ def main():
                     else:
                         st.error('You need to include a rubric for a scored phase', icon="🚨")
                 else:
-                    ai_feedback = execute_llm_completions(selected_llm,phase_instructions, formatted_user_prompt, image_urls)
+                    ai_feedback = execute_llm_completions(selected_llm, phase_instructions, formatted_user_prompt,
+                                                          image_urls)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     chat_history_entry = {
                         "user": formatted_user_prompt,
@@ -575,8 +644,8 @@ def main():
             if f"{PHASE_NAME}_ai_response" in st.session_state:
                 # Check if the current phase is the latest completed phase
                 is_latest_completed_phase = i == st.session_state['CURRENT_PHASE'] or (
-                            i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
-                        f"{list(PHASES.keys())[i + 1]}_phase_completed", False))
+                        i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
+                    f"{list(PHASES.keys())[i + 1]}_phase_completed", False))
 
                 # Check if it's not the last phase and the phase wasn't skipped
                 is_not_last_phase = PHASE_NAME != final_phase_name
@@ -599,7 +668,8 @@ def main():
 
                                 formatted_user_prompt += st.session_state['additional_prompt']
 
-                                ai_feedback = execute_llm_completions(selected_llm,phase_instructions, formatted_user_prompt)
+                                ai_feedback = execute_llm_completions(selected_llm, phase_instructions,
+                                                                      formatted_user_prompt)
 
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
                                     st.session_state[f"{PHASE_NAME}_revision_count"]))
@@ -627,7 +697,6 @@ def main():
                 celebration()
 
         i = min(i + 1, len(PHASES))
-
 
 
 if __name__ == "__main__":

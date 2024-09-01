@@ -8,7 +8,7 @@ import re
 
 load_dotenv()
 
-
+# fetching api key for LLM interactions
 def get_api_key(service_name):
     """Retrieve API key from environment variables based on service name."""
     env_var_name = f"{service_name.upper()}_API_KEY"
@@ -19,7 +19,8 @@ def get_api_key(service_name):
 
     return api_key
 
-# formatting.py
+
+# chat history formatting for different LLMs
 def format_chat_history(chat_history, family):
     """Format chat history based on LLM family."""
     formatted_history = []
@@ -40,7 +41,7 @@ def format_chat_history(chat_history, family):
                 ])
     return formatted_history
 
-
+# openai llm handler
 def handle_openai(context):
     """Handle requests for OpenAI models."""
     if not context["supports_image"] and context.get("image_urls"):
@@ -78,7 +79,7 @@ def handle_openai(context):
     except Exception as e:
         return f"Unexpected error while handling OpenAI request: {e}"
 
-
+# claude llm handler
 def handle_claude(context):
     """Handle requests for Claude models."""
     if not context["supports_image"] and context.get("image_urls"):
@@ -128,7 +129,7 @@ def handle_claude(context):
     except Exception as e:
         return f"Unexpected error while handling Claude request: {e}"
 
-
+# gemini llm handler
 def handle_gemini(context):
     """Handle requests for Gemini models."""
     if not context["supports_image"] and context.get("image_urls"):
@@ -151,10 +152,11 @@ def handle_gemini(context):
 
         chat_session = genai.GenerativeModel(
             model_name=context["model"],
-            generation_config= {"temperature": context["temperature"],
-                               "top_p": context["top_p"],
-                               "max_output_tokens": context["max_tokens"],
-                               "response_mime_type": "text/plain"
+            generation_config= {
+                "temperature": context["temperature"],
+                "top_p": context["top_p"],
+                "max_output_tokens": context["max_tokens"],
+                "response_mime_type": "text/plain"
                                },
             system_instruction=f"{context['SYSTEM_PROMPT']}"
         ).start_chat(history=messages)
@@ -167,6 +169,7 @@ def handle_gemini(context):
         return f"Unexpected error while handling Gemini request: {e}"
 
 
+# perplexity handler
 def handle_perplexity(context):
     """Handle requests for Perplexity models."""
     if not context["supports_image"] and context.get("image_urls"):
@@ -220,7 +223,6 @@ def handle_perplexity(context):
         return f"HTTP error occurred while handling Perplexity request: {http_err}"
     except requests.exceptions.RequestException as req_err:
         return f"Error occurred while making the Perplexity request: {req_err}"
-
 
 # Mapping of model families to handler functions
 HANDLERS = {
