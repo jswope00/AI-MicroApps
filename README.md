@@ -14,8 +14,8 @@ Apps can be deployed for free via [Streamlit.io](https://streamlit.io). Please s
 Microapps are built by combining **fields** and **phases**. **Fields** capture user input (e.g. responding to a faculty question, indicating a preference). **Phases** process fields, send a request to the AI, and receive a response. Phases can also be scored. 
 <img width="632" alt="image" src="https://github.com/user-attachments/assets/69ce2508-7e56-4618-868f-e6e67dd2e449">
 
-Explore the config_demo1.py file to see the supported fields and sample configuration. 
-Explore the config_demo2.py file to see the supported phases and sample configuration. 
+Explore the config_files/config_demo1.py file to see the supported fields and sample configuration. 
+Explore the config_files/config_demo2.py file to see the supported phases and sample configuration. 
 
 ## Requirements
 
@@ -69,7 +69,7 @@ Copy and rename a config file that serves as a good starting point for your app.
 
 Modify the configuration fields, and replace the existing phases and fields with your own. 
 
-Edit main.py to add your config file to the `templates` JSON list in the following format: "Human Readable Name": "config_file_name". Note no `.py` at the end of the config file name. 
+Edit master_config.py to add your config file to the `templates` JSON list in the following format: "Human Readable Name": "config_file_name". Note no `.py` at the end of the config file name. 
 
 Any changes to a config file require a restart of Streamlit
    - Ctrl + C to quit Streamlit from your terminal
