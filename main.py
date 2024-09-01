@@ -429,7 +429,7 @@ def main():
     The main entry point for the Streamlit application. Handles page setup, form generation,
     prompt processing, and interaction with LLM for responses.
     """
-
+    image_urls = []
     if 'TOTAL_PRICE' not in st.session_state:
         st.session_state['TOTAL_PRICE'] = 0
 
@@ -643,15 +643,14 @@ def main():
         if PHASE_DICT.get("allow_revisions", False):
             if f"{PHASE_NAME}_ai_response" in st.session_state:
                 # Check if the current phase is the latest completed phase
-                is_latest_completed_phase = i == st.session_state['CURRENT_PHASE'] or (
-                        i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
+                is_latest_completed_phase = i == st.session_state['CURRENT_PHASE'] or (i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
                     f"{list(PHASES.keys())[i + 1]}_phase_completed", False))
 
                 # Check if it's not the last phase and the phase wasn't skipped
-                is_not_last_phase = PHASE_NAME != final_phase_name
+                is_last_phase = (PHASE_NAME == final_phase_name)
                 is_not_skipped = not st.session_state.get(f"{PHASE_NAME}_skipped", False)
 
-                if is_latest_completed_phase and is_not_last_phase and is_not_skipped:
+                if (is_latest_completed_phase or is_last_phase) and is_not_skipped:
                     with st.expander("Revise this response?"):
                         max_revisions = PHASE_DICT.get("max_revisions", 10)
                         if f"{PHASE_NAME}_revision_count" not in st.session_state:
@@ -679,7 +678,6 @@ def main():
                                 }
                                 if image_urls:
                                     chat_history_entry["images"] = image_urls
-
                                 st.session_state['chat_history'].append(chat_history_entry)
                                 st.rerun()
                         else:
