@@ -28,40 +28,88 @@ PHASES = {
                 "label": "What is your first name?",
                 "helper": "First name only, please",
                 "value": "John",
-                "showIf": {"system": ["Western", "Chinese"]}
+                "showIf": {"system": {"$in": ["Western", "Chinese"]}}
             },
             "month": {
                 "type": "radio",
                 "label": "What is your birth month?",
                 "options": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-                "showIf": {"system": "Western"}
+                "showIf": {"$and": [{"system": "Western"}, {"name": {"$ne": ""}}]}
             },
             "day": {
                 "type": "number_input",
                 "label": "What is your birth day?",
                 "min_value": 1,
                 "max_value": 31,
-                "showIf": {"system": "Western"}
+                "showIf": {"$and": [{"system": "Western"}, {"name": {"$ne": ""}}]}
             },
             "year": {
                 "type": "number_input",
                 "label": "What is your birth year?",
                 "min_value": 1900,
                 "max_value": 2020,
-                "showIf": {"system": ["Western", "Chinese"]}
+                "showIf": {"$and":[{"system": {"$in": ["Western", "Chinese"]}},{"name": {"$ne": ""}}]}
             }
         },
-        "phase_instructions": "",
+        "phase_instructions": "Please fill in your details to determine your zodiac symbol.",
         "user_prompt": [
-                    {
-                        "condition": {"system": "Western"},
-                        "prompt": """My name is {name}. I was born on {month} {day}, {year}. Please provide me my Western zodiac symbol, and give a short horoscope for the day."""
-                    },
-                    {
-                        "condition": {"system": "Chinese"},
-                        "prompt": """My name is {name}. I was born in the year {year}. Please provide me my Chinese zodiac symbol, and give a short horoscope for the day."""
-                    }
-                ],
+            {
+                "condition": {"system": "Western"},
+                "prompt": """My name is {name}. I was born on {month} {day}, {year}. Please provide me my Western zodiac symbol, and give a short horoscope for the day."""
+            },
+            {
+                "condition": {"system": "Chinese"},
+                "prompt": """My name is {name}. I was born in the year {year}. Please provide me my Chinese zodiac symbol, and give a short horoscope for the day."""
+            }
+        ],
+        "show_prompt": True,
+        "allow_skip": True
+    },
+    "phase2": {
+        "name": "Zodiac Interpretation",
+        "fields": {
+            "interested_in_traits": {
+                "type": "radio",
+                "label": "Are you interested in learning about your personality traits based on your zodiac?",
+                "options": ["Yes", "No"]
+            },
+            "interested_in_compatibility": {
+                "type": "radio",
+                "label": "Would you like to know about zodiac compatibility?",
+                "options": ["Yes", "No"]
+            }
+        },
+        "phase_instructions": "Let's dive deeper into your zodiac interpretation.",
+        "user_prompt": [
+            {
+                "condition": {"$and": [
+                    {"interested_in_traits": "Yes"},
+                    {"interested_in_compatibility": "Yes"}
+                ]},
+                "prompt": """I'm interested in learning about both my personality traits and compatibility with other zodiac signs based on my {system} zodiac. Please provide detailed insights."""
+            },
+            {
+                "condition": {"$and": [
+                    {"interested_in_traits": "Yes"},
+                    {"interested_in_compatibility": "No"}
+                ]},
+                "prompt": """Please provide me with an interpretation of my personality traits based on my {system} zodiac sign."""
+            },
+            {
+                "condition": {"$and": [
+                    {"interested_in_traits": "No"},
+                    {"interested_in_compatibility": "Yes"}
+                ]},
+                "prompt": """I'd like to know more about my compatibility with other zodiac signs based on my {system} zodiac sign."""
+            },
+{
+                "condition": {"$and": [
+                    {"interested_in_traits": "No"},
+                    {"interested_in_compatibility": "No"}
+                ]},
+                "prompt": """I'd like to know more about my zodiac in general"""
+            }
+        ],
         "show_prompt": True,
         "allow_skip": True
     }
@@ -75,3 +123,4 @@ DISPLAY_COST = True
 
 COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
 COMPLETION_CELEBRATION = False
+

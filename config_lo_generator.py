@@ -311,14 +311,12 @@ PHASES = {
             {
             	"condition": {"request_type": "Provide learning objectives based on the content"},
             	"prompt": """Here is the content:
-            	================
             	{learning_content}
             	"""
             },
             {
             	"condition": {"request_type": "Suggest learning objectives based on the title"},
             	"prompt": """Here is the title of my course:
-            	================
             	{title}
             	"""
             },

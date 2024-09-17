@@ -37,18 +37,6 @@ LLM_CONFIG = {
         "price_input_token_1M": 5,
         "price_output_token_1M": 15
     },
-    "gemini-1.0-pro": {
-        "family": "gemini",
-        "model": "gemini-1.0-pro",
-        "max_tokens": 1000,
-        "temperature": 1.0,
-        "top_p": 0.95,
-        "frequency_penalty": 0,
-        "presence_penalty": 0,
-        "supports_image": False,
-        "price_input_token_1M": 0.5,
-        "price_output_token_1M": 1.5
-    },
     "gemini-1.5-flash": {
         "family": "gemini",
         "model": "gemini-1.5-flash",
@@ -57,7 +45,7 @@ LLM_CONFIG = {
         "top_p": 0.95,
         "frequency_penalty": 0,
         "presence_penalty": 0,
-        "supports_image": True,
+        "supports_image": False,
         "price_input_token_1M": 0.35,
         "price_output_token_1M": 1.05
     },
