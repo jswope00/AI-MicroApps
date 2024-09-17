@@ -24,6 +24,18 @@ LLM_CONFIG = {
         "price_input_token_1M": 10,
         "price_output_token_1M": 30
     },
+    "rag-with-gpt-4o": {
+        "family": "rag",
+        "model": "gpt-4-turbo",
+        "max_tokens": 1000,
+        "temperature": 1.0,
+        "top_p": 1.0,
+        "frequency_penalty": 0,
+        "presence_penalty": 0,
+        "supports_image": True,
+        "price_input_token_1M": 10,
+        "price_output_token_1M": 30
+    },
     "gpt-4o": {
         "family": "openai",
         "model": "gpt-4o",

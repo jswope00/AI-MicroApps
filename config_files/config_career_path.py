@@ -144,3 +144,6 @@ DISPLAY_COST = True
 
 COMPLETION_MESSAGE = "Thank you for using the Career Path Recommendation app! We hope our suggestions help guide your professional journey."
 COMPLETION_CELEBRATION = True
+
+RAG_IMPLEMENTATION = False # make true only when document exists
+SOURCE_DOCUMENT = "sample.pdf" # file uploaded in source_docs if only

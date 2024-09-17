@@ -268,7 +268,9 @@ def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image
         "price_input_token_1M": model_config["price_input_token_1M"],
         "price_output_token_1M": model_config["price_output_token_1M"],
         "TOTAL_PRICE": 0,
-        "chat_history": chat_history
+        "chat_history": chat_history,
+        "RAG_IMPLEMENTATION":RAG_IMPLEMENTATION,
+        "file_path":"source_docs/"+SOURCE_DOCUMENT
     }
 
     handler = HANDLERS.get(family)
@@ -333,9 +335,9 @@ def build_scoring_instructions(rubric):
     Builds scoring instructions based on the provided rubric for AI scoring.
     """
     scoring_instructions = f"""
-    Please score the user's previous response based on the following rubric: \n{rubric}
-    \n\nPlease output your response as JSON, using this format: {{ "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }}
-    """
+        Please score the user's previous response based on the following rubric: \n{rubric}
+        \n\nPlease output your response as JSON, using this format: '{{{{ "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }}}}'
+        """
     return scoring_instructions
 
 

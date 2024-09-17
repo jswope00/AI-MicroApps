@@ -168,3 +168,6 @@ DISPLAY_COST = True
 
 COMPLETION_MESSAGE = "Hope you enjoyed using the tool"
 COMPLETION_CELEBRATION = False
+
+RAG_IMPLEMENTATION = False # make true only when document exists
+SOURCE_DOCUMENT = "sample.pdf" # file uploaded in source_docs if only

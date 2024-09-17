@@ -1,6 +1,7 @@
 import openai
 import anthropic
 import google.generativeai as genai
+import rag_pipeline
 import requests
 import os
 from dotenv import load_dotenv
@@ -18,7 +19,6 @@ def get_api_key(service_name):
         raise ValueError(f"API key for {service_name} not found in environment variables.")
 
     return api_key
-
 
 # chat history formatting for different LLMs
 def format_chat_history(chat_history, family):
@@ -68,14 +68,11 @@ def handle_openai(context):
             frequency_penalty=context["frequency_penalty"],
             presence_penalty=context["presence_penalty"]
         )
-
         input_price = int(response.usage.prompt_tokens) * context["price_input_token_1M"] / 1000000
         output_price = int(response.usage.completion_tokens) * context["price_output_token_1M"] / 1000000
         total_price = input_price + output_price
         context['TOTAL_PRICE'] += total_price
-
         return response.choices[0].message.content
-
     except Exception as e:
         return f"Unexpected error while handling OpenAI request: {e}"
 
@@ -110,7 +107,6 @@ def handle_claude(context):
                         }
                     }]
                 })
-
         response = client.messages.create(
             model=context["model"],
             max_tokens=context["max_tokens"],
@@ -118,14 +114,11 @@ def handle_claude(context):
             system=f"{context['SYSTEM_PROMPT']}",
             messages=messages
         )
-
         input_price = int(response.usage.input_tokens) * context["price_input_token_1M"] / 1000000
         output_price = int(response.usage.output_tokens) * context["price_output_token_1M"] / 1000000
         total_price = input_price + output_price
         context['TOTAL_PRICE'] += total_price
-
         return '\n'.join([block.text for block in response.content if block.type == 'text'])
-
     except Exception as e:
         return f"Unexpected error while handling Claude request: {e}"
 
@@ -152,22 +145,13 @@ def handle_gemini(context):
 
         chat_session = genai.GenerativeModel(
             model_name=context["model"],
-            generation_config= {
-                "temperature": context["temperature"],
-                "top_p": context["top_p"],
-                "max_output_tokens": context["max_tokens"],
-                "response_mime_type": "text/plain"
-                               },
+            generation_config= {"temperature": context["temperature"],"top_p": context["top_p"],"max_output_tokens": context["max_tokens"],"response_mime_type":"text/plain"},
             system_instruction=f"{context['SYSTEM_PROMPT']}"
         ).start_chat(history=messages)
-
         response = chat_session.send_message(context["user_prompt"])
-
         return response.text
-
     except Exception as e:
         return f"Unexpected error while handling Gemini request: {e}"
-
 
 # perplexity handler
 def handle_perplexity(context):
@@ -224,10 +208,50 @@ def handle_perplexity(context):
     except requests.exceptions.RequestException as req_err:
         return f"Error occurred while making the Perplexity request: {req_err}"
 
+
+def rag_handler(context):
+    """
+    RAG Handler that processes the document, retrieves relevant information,
+    and generates a response using the OpenAI language model.
+
+    Args:
+    - context: A dictionary containing the file path, user prompt, and LLM configuration.
+
+    Returns:
+    - Generated response and cost.
+    """
+    # Step 1: Extract necessary information from the context
+    file_path = context.get("file_path", None)
+    user_prompt = context.get("user_prompt", "")
+
+    if not file_path:
+        raise ValueError("File path is required for RAG-based generation.")
+    if not user_prompt:
+        raise ValueError("User prompt is required.")
+
+    # Step 2: Check and store metadata and embeddings if not already present
+    rag_pipeline.check_and_store_metadata_and_embeddings(file_path)
+
+    # Step 4: Retrieve relevant documents based on the user's query and generate a response
+    try:
+        # Call the retrieval and response generation pipeline
+        rag_response, cost = rag_pipeline.retrieve_and_generate_response(
+            question= user_prompt,
+            template_text= str(context["phase_instructions"])+" User answer is "+ user_prompt
+        )
+        print(rag_response,cost)
+        # Step 5: Update the context with the cost (if applicable)
+        context["TOTAL_PRICE"] = context.get("TOTAL_PRICE", 0) + (cost if cost else 0)
+        return rag_response
+    except Exception as e:
+        return f"Error during RAG processing: {e}"
+
+
 # Mapping of model families to handler functions
 HANDLERS = {
     "openai": handle_openai,
     "claude": handle_claude,
     "gemini": handle_gemini,
-    "perplexity": handle_perplexity
+    "perplexity": handle_perplexity,
+    "rag":rag_handler
 }
