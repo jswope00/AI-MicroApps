@@ -30,7 +30,8 @@ templates = {
     "SOAP Notes Scoring": "config_soap",
     "Learning Objective Generator": "config_lo_generator",
     "Image Quiz": "config_image_quiz",
-    "Zodiac Symbol": "config_zodiac"
+    "Zodiac Symbol": "config_zodiac",
+    "Career Advisor": "config_career_path"
 }
 
 # Select template from the sidebar
@@ -92,13 +93,51 @@ function_map = {
 }
 
 
+def evaluate_conditions(user_input, condition):
+    """Evaluate whether a user_input meets the specified condition."""
+    if "$and" in condition:
+        return all(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$and"])
+    elif "$or" in condition:
+        return any(evaluate_conditions(user_input, sub_condition) for sub_condition in condition["$or"])
+    elif "$not" in condition:
+        return not evaluate_conditions(user_input, condition["$not"])
+
+    for key, value in condition.items():
+        if isinstance(value, dict):
+            operator, condition_value = next(iter(value.items()))
+            user_value = user_input.get(key)
+
+            if operator == "$gt" and not user_value > condition_value:
+                return False
+            elif operator == "$lt" and not user_value < condition_value:
+                return False
+            elif operator == "$gte" and not user_value >= condition_value:
+                return False
+            elif operator == "$lte" and not user_value <= condition_value:
+                return False
+            elif operator == "$eq" and not user_value == condition_value:
+                return False
+            elif operator == "$ne" and not user_value != condition_value:
+                return False
+            elif operator == "$in" and user_value not in condition_value:
+                return False
+            elif operator == "$nin" and user_value in condition_value:
+                return False
+        else:
+            if isinstance(value, list):
+                if user_input.get(key) not in value:
+                    return False
+            else:
+                if user_input.get(key) != value:
+                    return False
+    return True
+
 def build_field(phase_name, fields):
     for field_key, field in fields.items():
         # Check showIf conditions
         if 'showIf' in field:
             condition = field['showIf']
-            if not all(user_input.get(k) in v if isinstance(v, list) else user_input.get(k) == v for k, v in
-                       condition.items()):
+            if not evaluate_conditions(user_input, condition):
                 continue
         field_type = field.get("type", "")
         field_label = field.get("label", "")
@@ -227,27 +266,27 @@ def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image
             raise RuntimeError(f"Error in handling the LLM request: {e}")
     else:
         raise NotImplementedError(f"No handler implemented for model family '{family}'")
-
     return result
 
 def prompt_conditionals(user_input, phase_name=None):
     phase = PHASES[phase_name]
-    # Handle user_prompt as string or list
     if isinstance(phase["user_prompt"], str):
         base_prompt = phase["user_prompt"]
     else:
         additional_prompts = []
         for item in phase["user_prompt"]:
             condition_clause = item["condition"]
-            if all(user_input.get(key) == value for key, value in condition_clause.items()):
+            if evaluate_conditions(user_input, condition_clause):
                 additional_prompts.append(item["prompt"])
         base_prompt = "\n".join(additional_prompts)
     return base_prompt
 
-def format_user_prompt(prompt, user_input,phase_name=None):
+def format_user_prompt(prompt, user_input, phase_name=None):
     try:
-        prompt = prompt_conditionals(user_input,phase_name)
-        formatted_user_prompt = prompt.format(**user_input)
+        # Apply conditional logic to determine the correct prompt based on user_input and phase_name
+        prompt = prompt_conditionals(user_input, phase_name)
+        # Safely format the prompt using the keys that are actually in user_input
+        formatted_user_prompt = prompt.format(**{k: user_input.get(k, '') for k in re.findall(r'{(\w+)}', prompt)})
         return formatted_user_prompt
     except Exception as e:
         print("Error occurred:", e)

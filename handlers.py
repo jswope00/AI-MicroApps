@@ -8,6 +8,7 @@ import re
 
 load_dotenv()
 
+
 def get_api_key(service_name):
     """Retrieve API key from environment variables based on service name."""
     env_var_name = f"{service_name.upper()}_API_KEY"
@@ -38,6 +39,7 @@ def format_chat_history(chat_history, family):
                     {"role": "assistant", "content": assistant_content}
                 ])
     return formatted_history
+
 
 def handle_openai(context):
     """Handle requests for OpenAI models."""
@@ -76,6 +78,7 @@ def handle_openai(context):
     except Exception as e:
         return f"Unexpected error while handling OpenAI request: {e}"
 
+
 def handle_claude(context):
     """Handle requests for Claude models."""
     if not context["supports_image"] and context.get("image_urls"):
@@ -92,7 +95,8 @@ def handle_claude(context):
             for image_url in context["image_urls"]:
                 # Extract base64 data from the image URL
                 base64_data = image_url.split(",")[1]
-                mime_type = re.search(r"data:(.*?);base64,", image_url).group(1) if re.search(r"data:(.*?);base64,", image_url) else None
+                mime_type = re.search(r"data:(.*?);base64,", image_url).group(1) if re.search(r"data:(.*?);base64,",
+                                                                                              image_url) else None
                 # Add image to the messages
                 messages.append({
                     "role": "user",
@@ -124,6 +128,7 @@ def handle_claude(context):
     except Exception as e:
         return f"Unexpected error while handling Claude request: {e}"
 
+
 def handle_gemini(context):
     """Handle requests for Gemini models."""
     if not context["supports_image"] and context.get("image_urls"):
@@ -132,31 +137,26 @@ def handle_gemini(context):
         genai.configure(api_key=get_api_key("google"))
 
         messages = format_chat_history(context["chat_history"], "gemini") + [
-            {"role": "user", "parts": [context["user_prompt"]]}
+            {"role": "user", "parts": [context["user_prompt"]]},
+            {"role": "model", "parts": [context["phase_instructions"]]}
         ]
 
         if context["supports_image"] and context["image_urls"]:
             for image_url in context["image_urls"]:
+                # Add image to the messages
                 messages.append({
                     "role": "user",
-                    "parts": [{
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/jpeg",
-                            "data": image_url
-                        }
-                    }]
+                    "parts": [image_url]
                 })
 
         chat_session = genai.GenerativeModel(
             model_name=context["model"],
-            generation_config={
-                "temperature": context["temperature"],
-                "top_p": context["top_p"],
-                "max_output_tokens": context["max_tokens"],
-                "response_mime_type": "text/plain"
-            }
+            generation_config= {"temperature": context["temperature"],
+                               "top_p": context["top_p"],
+                               "max_output_tokens": context["max_tokens"],
+                               "response_mime_type": "text/plain"
+                               },
+            system_instruction=f"{context['SYSTEM_PROMPT']}"
         ).start_chat(history=messages)
 
         response = chat_session.send_message(context["user_prompt"])
@@ -165,6 +165,7 @@ def handle_gemini(context):
 
     except Exception as e:
         return f"Unexpected error while handling Gemini request: {e}"
+
 
 def handle_perplexity(context):
     """Handle requests for Perplexity models."""
@@ -175,10 +176,10 @@ def handle_perplexity(context):
 
     # Prepare messages
     messages = [
-        {"role": "system", "content": context["SYSTEM_PROMPT"] + context["phase_instructions"]}
-    ] + format_chat_history(context["chat_history"], "perplexity") + [
-        {"role": "user", "content": context["user_prompt"]}
-    ]
+                   {"role": "system", "content": context["SYSTEM_PROMPT"] + context["phase_instructions"]}
+               ] + format_chat_history(context["chat_history"], "perplexity") + [
+                   {"role": "user", "content": context["user_prompt"]}
+               ]
 
     # Add image URLs if supported
     if context["supports_image"] and context["image_urls"]:
@@ -226,5 +227,5 @@ HANDLERS = {
     "openai": handle_openai,
     "claude": handle_claude,
     "gemini": handle_gemini,
-    "perplexity":handle_perplexity
+    "perplexity": handle_perplexity
 }
