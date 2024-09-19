@@ -16,10 +16,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Load environment variables
-mongo_uri = os.getenv('MONGO_DB_URI')
-db_name = os.getenv('DATABASE_NAME')
-files_metadata = os.getenv('META_COLLECTION')
-embeddings_collection = os.getenv('EMBEDDINGS_COLLECTION')
+mongo_uri = os.getenv('MONGO_DB_URI', 'undefined')
+db_name = os.getenv('DATABASE_NAME', 'undefined')
+files_metadata = os.getenv('META_COLLECTION', 'undefined')
+embeddings_collection = os.getenv('EMBEDDINGS_COLLECTION', 'undefined')
 
 # Initialize MongoDB connection
 client = MongoClient(mongo_uri)
