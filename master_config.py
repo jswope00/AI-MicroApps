@@ -11,6 +11,8 @@ SIDEBAR_HIDDEN = False  # Set to True to completely hide the sidebar
 
 # 3. Templates
 TEMPLATES = {
+    "Fresno Test": "config_fresno_rubric",
+    "TEST": "config",
     "Alt Text Generator": "config_alt_text",
     "Case Study: Ebola": "config_ebola_case_study",
     "Demo 1": "config_demo1",
