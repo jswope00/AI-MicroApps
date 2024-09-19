@@ -86,3 +86,6 @@ DISPLAY_COST = True
 
 COMPLETION_MESSAGE = "Thanks for using the Alt Text Generator service"
 COMPLETION_CELEBRATION = False
+
+RAG_IMPLEMENTATION = False # make true only when document exists
+SOURCE_DOCUMENT = "sample.pdf" # file uploaded in source_docs if only

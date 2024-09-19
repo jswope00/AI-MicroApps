@@ -64,28 +64,12 @@ PHASES = {
                 "type": "text_area",
                 "label": "What is the main topic of this research paper?",
                 "value": "This research paper focuses on the impact of video production decisions on student engagement in online educational videos. It examines how various aspects of video creation affect how students interact with and learn from these videos in online courses."
-            },
-            "research_question": {
-                "type": "text_area",
-                "label": "What is the main research question or objective of this study?",
-                "value": "The main objective of this study is to identify which factors in video production have the most significant impact on student engagement in online educational videos. Specifically, the researchers aim to understand how elements like video length, speaking rate, production style, and instructor visibility affect how long students watch videos and how they perform on subsequent problem-solving tasks."
             }
         },
-        "phase_instructions": "Address user by name. Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
-        "user_prompt": "Here is the main topic of the research paper: {topic} and the study's primary goal is: {research_question}.",
+        "phase_instructions": "Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
+        "user_prompt": "Here is the main topic of the research paper: {topic}",
         "ai_response": True,
-        "scored_phase": True,
-        "minimum_score": 2,
-        "rubric": """
-            1. Accuracy
-                2 points - Correctly identifies the main topic (video engagement in online education)            
-                1 point - Partially identifies the topic (mentions either videos or engagement, but not both)
-                0 points - Misidentifies the topic or provides an irrelevant answer
-            2. Completeness
-                2 points - Mentions both the focus on production decisions and their impact on student engagement
-                1 point - Mentions either production decisions or student engagement, but not both
-                0 points - Does not mention either key aspect of the study
-        """,
+        "scored_phase": False,
         "allow_revisions": True,
         "max_revisions": 3,
         "allow_skip": True,
@@ -109,17 +93,6 @@ PHASES = {
         "phase_instructions": "Assess the user's understanding of the data collection process and analysis methods. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods.",
         "user_prompt": "The data was collected as follows: {data_collection}. The analysis methods used were: {analysis_method}",
         "ai_response": True,
-        "scored_phase": True,
-        "minimum_score": 2,
-        "rubric": """
-            1. Data Source and Methods
-                2 points - Correctly identifies edX as the source of data and analysis methods as Qualitative and Quantitative. 
-                1 point - Mentions online courses but not specifically edX and talks about analysis methods in general.
-                0 points - Does not mention or incorrectly identifies the data source and does not mention analysis methods
-            2. Scale
-                1 point - Mentions the large scale of the study (millions of sessions)
-                0 points - Does not mention the scale of data collection
-        """,
         "allow_revisions": False,
         "allow_skip": True,
         "show_prompt": True,
@@ -171,3 +144,6 @@ DISPLAY_COST = True
 
 COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
 COMPLETION_CELEBRATION = False
+
+RAG_IMPLEMENTATION = True
+SOURCE_DOCUMENT = "student_engagement.pdf"

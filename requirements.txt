@@ -4,3 +4,11 @@ streamlit_extras
 python-dotenv
 anthropic
 google-generativeai
+dnspython==2.6.1
+pymongo==4.8.0
+langchain-core==0.2.38
+langchain-openai==0.1.23
+langchain-mongodb==0.1.8
+langchain==0.2.16
+langchain-community==0.2.16
+pypdf

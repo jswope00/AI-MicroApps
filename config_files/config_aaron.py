@@ -114,3 +114,6 @@ DISPLAY_COST = True
 
 COMPLETION_MESSAGE = "You've reached the end! I hope you learned something!"
 COMPLETION_CELEBRATION = False
+
+RAG_IMPLEMENTATION = False # make true only when document exists
+SOURCE_DOCUMENT = "sample.pdf" # file uploaded in source_docs if only
