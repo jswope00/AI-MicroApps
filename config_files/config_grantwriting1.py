@@ -75,9 +75,7 @@ PHASES = {
 PREFERRED_LLM = "gpt-4o-mini"
 LLM_CONFIG_OVERRIDE = {}
 
-PAGE_CONFIG = {
-    "initial_sidebar_state": "collapsed"  # Options: "auto", "expanded", "collapsed"
-}
+INITIAL_SIDEBAR_STATE = "collapsed"  # Options: "auto", "expanded", "collapsed"
 
 SIDEBAR_HIDDEN = True
 
