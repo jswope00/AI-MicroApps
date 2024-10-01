@@ -35,21 +35,21 @@ PHASES = {
                 "type": "radio",
                 "label": """What is your birth month?""",
                 "options": ["January","February","March","April","May","June","July","August","September","October","November","December"],
-                "showIf": "{system} = "Western"",
+                "showIf": "{system} = \"Western\"",
             },
             "day": {
                 "type": "number_input",
                 "label": """What is your birth day?""",
                 "min_value": 1,
                 "max_value":31,
-                "showIf": "{system} = "Western"",
+                "showIf": "{system} = \"Western\"",
             },
             "year": {
                 "type": "number_input",
                 "label": """What is your birth year?""",
                 "min_value": 1900,
-                "max_value":2020
-                "showIf": "{system} = "Chinese"",
+                "max_value":2020,
+                "showIf": "{system} = \"Chinese\"",
             },
 
 
@@ -59,13 +59,13 @@ PHASES = {
         "prompt": {
             "prompt": {
                 "prompt": "Give me my Western zodiac. My birth month is {month} and {day}",
-                "includeIf": "{system} = "Western"",
+                "includeIf": "{system} = \"Western\"",
             },
             "prompt2": {
                 "prompt": "Give me my Chinese zodiac. My birth year is {year}",
-                "includeIf": "{system} = "Chinese"",
+                "includeIf": "{system} = \"Chinese\"",
             },
-        }
+        },
         "user_prompt": "My name is {name}. I was born on {month} {day}, {year}. Please provide me my zodiac symbol, and give a short horoscope for the day, according to the {system} astrology system.",
         "ai_response": True,
         "allow_skip": True,

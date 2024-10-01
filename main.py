@@ -269,8 +269,8 @@ def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image
         "price_output_token_1M": model_config["price_output_token_1M"],
         "TOTAL_PRICE": 0,
         "chat_history": chat_history,
-        "RAG_IMPLEMENTATION":RAG_IMPLEMENTATION,
-        "file_path":"source_docs/"+SOURCE_DOCUMENT
+        "RAG_IMPLEMENTATION":RAG_IMPLEMENTATION if 'RAG_IMPLEMENTATION' in locals() else False,
+        "file_path":"source_docs/"+SOURCE_DOCUMENT if 'SOURCE_DOCUMENT' in locals() else None,
     }
 
     handler = HANDLERS.get(family)
