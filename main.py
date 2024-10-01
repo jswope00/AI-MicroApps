@@ -16,7 +16,7 @@ CONFIG_FOLDER = "config_files"
 
 # Select template from the sidebar
 #selected_template = st.sidebar.selectbox("Select template", TEMPLATES.keys())
-selected_template = "Future Funding Draft Feedback"
+selected_template = "Problem Statement Feedback"
 
 config_file = TEMPLATES[selected_template]
 
