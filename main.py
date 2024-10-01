@@ -17,7 +17,7 @@ CONFIG_FOLDER = "config_files"
 # Apply master page configuration
 st.set_page_config(
     page_title=PAGE_CONFIG.get("page_title", "AI MicroApps"),
-    page_icon=PAGE_CONFIG.get("page_icon", "🎯"),
+    page_icon=PAGE_CONFIG.get("page_icon", "🤖"),
     layout=PAGE_CONFIG.get("layout", "wide"),
     initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
 )
@@ -697,7 +697,6 @@ def main():
                 celebration()
 
         i = min(i + 1, len(PHASES))
-
 
 if __name__ == "__main__":
     main()
