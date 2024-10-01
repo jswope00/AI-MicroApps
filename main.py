@@ -14,25 +14,28 @@ from master_config import *
 # Folder where config files are stored
 CONFIG_FOLDER = "config_files"
 
+# Select template from the sidebar
+#selected_template = st.sidebar.selectbox("Select template", TEMPLATES.keys())
+selected_template = "Evaluation Draft Feedback"
+
+config_file = TEMPLATES[selected_template]
+
+if config_file:
+    module_path = f"{CONFIG_FOLDER}.{config_file}"
+    config_module = importlib.import_module(module_path)
+    for attr in dir(config_module):
+        if not attr.startswith("__"):
+            globals()[attr] = getattr(config_module, attr)
+else:
+    from config import *
+
 # Apply master page configuration
 st.set_page_config(
-    page_title=PAGE_CONFIG.get("page_title", "AI MicroApps"),
-    page_icon=PAGE_CONFIG.get("page_icon", "🤖"),
-    layout=PAGE_CONFIG.get("layout", "wide"),
-    initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
+    page_title=APP_TITLE if 'APP_TITLE' in locals() else "AI MicroApps",
+    page_icon=PAGE_ICON if 'PAGE_ICON' in locals() else "🤖",
+    layout=LAYOUT if 'LAYOUT' in locals() else "wide",
+    initial_sidebar_state=INITIAL_SIDEBAR_STATE if 'INITIAL_SIDEBAR_STATE' in locals() else "auto"
 )
-
-# Optionally hide the sidebar completely
-if SIDEBAR_HIDDEN:
-    hide_sidebar_style = """
-        <style>
-            [data-testid="stSidebar"] {display: none;}
-        </style>
-    """
-    st.markdown(hide_sidebar_style, unsafe_allow_html=True)
-
-# Select template from the sidebar
-selected_template = st.sidebar.selectbox("Select template", TEMPLATES.keys())
 
 if "template" not in st.session_state or st.session_state.template != selected_template:
     st.session_state.template = selected_template
@@ -49,16 +52,16 @@ if "template" not in st.session_state or st.session_state.template != selected_t
 
     st.rerun()
 
-config_file = TEMPLATES[selected_template]
 
-if config_file:
-    module_path = f"{CONFIG_FOLDER}.{config_file}"
-    config_module = importlib.import_module(module_path)
-    for attr in dir(config_module):
-        if not attr.startswith("__"):
-            globals()[attr] = getattr(config_module, attr)
-else:
-    from config import *
+# Optionally hide the sidebar completely
+SIDEBAR_HIDDEN=SIDEBAR_HIDDEN if 'SIDEBAR_HIDDEN' in locals() else False
+if SIDEBAR_HIDDEN:
+    hide_sidebar_style = """
+        <style>
+            [data-testid="stSidebar"] {display: none;}
+        </style>
+    """
+    st.markdown(hide_sidebar_style, unsafe_allow_html=True)
 
 # Function to merge configuration dictionaries
 def merge_configurations(defaults, overrides):
