@@ -17,7 +17,8 @@ HTML_BUTTON = {
 
 }
 
-SYSTEM_PROMPT = """You accept images in url and file format to generate description or alt text according to WCAG and ADA standards."""
+SYSTEM_PROMPT = "You accept images in url and file format to generate description or alt text according to W3C standards."
+
 
 PHASES = {
     "phase1": {
@@ -46,7 +47,7 @@ PHASES = {
                 "help": "Complex images get both a short and a long description of the image"
             }
         },
-        "phase_instructions": "Generate the alt text for the image urls and uploads",
+       "phase_instructions": "Generate the alt text for the image urls and uploads",
         "user_prompt": [
             {
                 "condition": {"important_text": False,"complex_image": False},
@@ -76,6 +77,8 @@ PHASES = {
         "show_prompt": True,
         "allow_skip": False,
     }
+
+
 }
 
 PREFERRED_LLM = "gpt-4o"
@@ -89,3 +92,15 @@ COMPLETION_CELEBRATION = False
 
 RAG_IMPLEMENTATION = False # make true only when document exists
 SOURCE_DOCUMENT = "sample.pdf" # file uploaded in source_docs if only
+
+# Example configuration setup
+import os
+import sys
+
+# Add the parent directory to sys.path
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, parent_dir)
+
+if __name__ == "__main__":
+    import main
+    main.main(__file__)

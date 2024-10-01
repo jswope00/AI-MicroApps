@@ -66,7 +66,7 @@ PHASES = {
                 "value": "This research paper focuses on the impact of video production decisions on student engagement in online educational videos. It examines how various aspects of video creation affect how students interact with and learn from these videos in online courses."
             }
         },
-        "phase_instructions": "Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
+        "phase_instructions": "Evaluate the user's understanding of the main topic of the embedded and vectorized research paper about edX MOOCS and study's primary goal. Guide them to refine their answer if it's not precise. Make sure to reference facts from the paper. ",
         "user_prompt": "Here is the main topic of the research paper: {topic}",
         "ai_response": True,
         "scored_phase": False,
@@ -90,7 +90,7 @@ PHASES = {
                 "value": "The researchers used a combination of quantitative and qualitative methods to analyze the data. They performed statistical analyses to correlate various video attributes (such as length, speaking rate, production style, and instructor visibility) with engagement metrics (video watching time and performance on subsequent problems). They also conducted qualitative analyses of video styles and content to categorize videos and understand nuances that might not be captured by quantitative data alone. The researchers used these methods to identify patterns and trends in how different video characteristics influenced student engagement and learning outcomes."
             }
         },
-        "phase_instructions": "Assess the user's understanding of the data collection process and analysis methods. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods.",
+        "phase_instructions": "Assess the user's understanding of the data collection process and analysis methods from the embedded and vectorized research paper about edX MOOCS. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods. Make sure to reference facts from the paper. ",
         "user_prompt": "The data was collected as follows: {data_collection}. The analysis methods used were: {analysis_method}",
         "ai_response": True,
         "allow_revisions": False,
@@ -147,3 +147,15 @@ COMPLETION_CELEBRATION = False
 
 RAG_IMPLEMENTATION = True
 SOURCE_DOCUMENT = "student_engagement.pdf"
+
+# Example configuration setup
+import os
+import sys
+
+# Add the parent directory to sys.path
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, parent_dir)
+
+if __name__ == "__main__":
+    import main
+    main.main(__file__)
