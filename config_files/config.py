@@ -66,7 +66,7 @@ PHASES = {
                 "value": "This research paper focuses on the impact of video production decisions on student engagement in online educational videos. It examines how various aspects of video creation affect how students interact with and learn from these videos in online courses."
             }
         },
-        "phase_instructions": "Evaluate the user's understanding of the main topic of the research paper and study's primary goal. Guide them to refine their answer if it's not precise.",
+        "phase_instructions": "Evaluate the user's understanding of the main topic of the embedded and vectorized research paper about edX MOOCS and study's primary goal. Guide them to refine their answer if it's not precise. Make sure to reference facts from the paper. ",
         "user_prompt": "Here is the main topic of the research paper: {topic}",
         "ai_response": True,
         "scored_phase": False,
@@ -90,7 +90,7 @@ PHASES = {
                 "value": "The researchers used a combination of quantitative and qualitative methods to analyze the data. They performed statistical analyses to correlate various video attributes (such as length, speaking rate, production style, and instructor visibility) with engagement metrics (video watching time and performance on subsequent problems). They also conducted qualitative analyses of video styles and content to categorize videos and understand nuances that might not be captured by quantitative data alone. The researchers used these methods to identify patterns and trends in how different video characteristics influenced student engagement and learning outcomes."
             }
         },
-        "phase_instructions": "Assess the user's understanding of the data collection process and analysis methods. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods.",
+        "phase_instructions": "Assess the user's understanding of the data collection process and analysis methods from the embedded and vectorized research paper about edX MOOCS. Prompt them to think about the scale and sources of data if they miss key points and Encourage them to consider both quantitative and qualitative aspects in analysis methods. Make sure to reference facts from the paper. ",
         "user_prompt": "The data was collected as follows: {data_collection}. The analysis methods used were: {analysis_method}",
         "ai_response": True,
         "allow_revisions": False,
@@ -137,7 +137,20 @@ PHASES = {
 }
 
 PREFERRED_LLM = "gpt-4o-mini"
-LLM_CONFIG_OVERRIDE = {}
+
+LLM_CONFIG_OVERRIDE = {"gpt-4o-mini": {
+        "family": "openai",
+        "model": "gpt-4o-mini",
+        "max_tokens": 1000,
+        "temperature": 1.0,
+        "top_p": 1.0,
+        "frequency_penalty": 0,
+        "presence_penalty": 0,
+        "supports_image": False,
+        "price_input_token_1M": 0.15,
+        "price_output_token_1M": 0.60
+    }
+}
 
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
@@ -147,3 +160,36 @@ COMPLETION_CELEBRATION = False
 
 RAG_IMPLEMENTATION = True
 SOURCE_DOCUMENT = "student_engagement.pdf"
+
+PAGE_CONFIG = {
+    "page_title": "AI Assessment",
+    "page_icon": "👨‍💻",
+    "layout": "centered",
+    "initial_sidebar_state": "expanded"
+}
+
+SIDEBAR_HIDDEN = True
+
+TEMPLATES = {"AI Assessment":"config"}
+
+from main import main
+if __name__ == "__main__":
+    config = {
+        "APP_TITLE": APP_TITLE,
+        "APP_INTRO": APP_INTRO,
+        "APP_HOW_IT_WORKS": APP_HOW_IT_WORKS,
+        "HTML_BUTTON": HTML_BUTTON,
+        "PREFERRED_LLM": PREFERRED_LLM,
+        "LLM_CONFIG_OVERRIDE": LLM_CONFIG_OVERRIDE,
+        "PHASES": PHASES,
+        "COMPLETION_MESSAGE": COMPLETION_MESSAGE,
+        "COMPLETION_CELEBRATION": COMPLETION_CELEBRATION,
+        "SCORING_DEBUG_MODE": SCORING_DEBUG_MODE,
+        "DISPLAY_COST": DISPLAY_COST,
+        "RAG_IMPLEMENTATION": RAG_IMPLEMENTATION,
+        "SOURCE_DOCUMENT": SOURCE_DOCUMENT,
+        "PAGE_CONFIG": PAGE_CONFIG,
+        "SIDEBAR_HIDDEN": SIDEBAR_HIDDEN,
+        "TEMPLATES": TEMPLATES
+    }
+    main(config)

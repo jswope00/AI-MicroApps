@@ -17,7 +17,8 @@ HTML_BUTTON = {
 
 }
 
-SYSTEM_PROMPT = """You accept images in url and file format to generate description or alt text according to WCAG and ADA standards."""
+SYSTEM_PROMPT = "You accept images in url and file format to generate description or alt text according to W3C standards."
+
 
 PHASES = {
     "phase1": {
@@ -42,11 +43,11 @@ PHASES = {
             "complex_image": {
                 "type": "checkbox",
                 "label": "My image is a complex image (chart, infographic, etc...)",
-                "value": True,
+                "value": False,
                 "help": "Complex images get both a short and a long description of the image"
             }
         },
-        "phase_instructions": "Generate the alt text for the image urls and uploads",
+       "phase_instructions": "Generate the alt text for the image urls and uploads",
         "user_prompt": [
             {
                 "condition": {"important_text": False,"complex_image": False},
@@ -67,14 +68,20 @@ PHASES = {
                 "prompt": """I am sending you one or more images. Please provide separate appropriate alt text for each image I send. The alt text should:
                 - Aim to put the most important information at the beginning. \n
                 - Make sure to include any text in this image as part of the alt text"""
+            },
+            {
+                "condition": {},
+                "prompt": "Here is the uploaded image(s) - {http_img_urls} and uploaded_files",
             }
         ],
         "show_prompt": True,
         "allow_skip": False,
     }
+
+
 }
 
-PREFERRED_LLM = "gpt-4o-mini"
+PREFERRED_LLM = "gpt-4o"
 LLM_CONFIG_OVERRIDE = {}
 
 SCORING_DEBUG_MODE = True
@@ -83,5 +90,37 @@ DISPLAY_COST = True
 COMPLETION_MESSAGE = "Thanks for using the Alt Text Generator service"
 COMPLETION_CELEBRATION = False
 
-RAG_IMPLEMENTATION = False # make true only when document exists
-SOURCE_DOCUMENT = "sample.pdf" # file uploaded in source_docs if only
+
+
+PAGE_CONFIG = {
+    "page_title": "Alt Text Generator",
+    "page_icon": "🖼️",
+    "layout": "centered",
+    "initial_sidebar_state": "expanded"
+}
+
+SIDEBAR_HIDDEN = True
+
+TEMPLATES = {"Alt Text Generator":"config_alt_text"}
+
+from main import main
+if __name__ == "__main__":
+    config = {
+        "APP_TITLE": APP_TITLE,
+        "APP_INTRO": APP_INTRO,
+        "APP_HOW_IT_WORKS": APP_HOW_IT_WORKS,
+        "HTML_BUTTON": HTML_BUTTON,
+        "PREFERRED_LLM": PREFERRED_LLM,
+        "LLM_CONFIG_OVERRIDE": LLM_CONFIG_OVERRIDE,
+        "PHASES": PHASES,
+        "COMPLETION_MESSAGE": COMPLETION_MESSAGE,
+        "COMPLETION_CELEBRATION": COMPLETION_CELEBRATION,
+        "SCORING_DEBUG_MODE": SCORING_DEBUG_MODE,
+        "DISPLAY_COST": DISPLAY_COST,
+        "RAG_IMPLEMENTATION": RAG_IMPLEMENTATION,
+        "SOURCE_DOCUMENT": SOURCE_DOCUMENT,
+        "PAGE_CONFIG": PAGE_CONFIG,
+        "SIDEBAR_HIDDEN": SIDEBAR_HIDDEN,
+        "TEMPLATES": TEMPLATES
+    }
+    main(config)
