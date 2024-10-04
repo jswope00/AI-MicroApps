@@ -137,7 +137,20 @@ PHASES = {
 }
 
 PREFERRED_LLM = "gpt-4o-mini"
-LLM_CONFIG_OVERRIDE = {}
+
+LLM_CONFIG_OVERRIDE = {"gpt-4o-mini": {
+        "family": "openai",
+        "model": "gpt-4o-mini",
+        "max_tokens": 1000,
+        "temperature": 1.0,
+        "top_p": 1.0,
+        "frequency_penalty": 0,
+        "presence_penalty": 0,
+        "supports_image": False,
+        "price_input_token_1M": 0.15,
+        "price_output_token_1M": 0.60
+    }
+}
 
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
@@ -148,14 +161,35 @@ COMPLETION_CELEBRATION = False
 RAG_IMPLEMENTATION = True
 SOURCE_DOCUMENT = "student_engagement.pdf"
 
-# Example configuration setup
-import os
-import sys
+PAGE_CONFIG = {
+    "page_title": "AI Assessment",
+    "page_icon": "👨‍💻",
+    "layout": "centered",
+    "initial_sidebar_state": "expanded"
+}
 
-# Add the parent directory to sys.path
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, parent_dir)
+SIDEBAR_HIDDEN = True
 
+TEMPLATES = {"AI Assessment":"config"}
+
+from main import main
 if __name__ == "__main__":
-    import main
-    main.main(__file__)
+    config = {
+        "APP_TITLE": APP_TITLE,
+        "APP_INTRO": APP_INTRO,
+        "APP_HOW_IT_WORKS": APP_HOW_IT_WORKS,
+        "HTML_BUTTON": HTML_BUTTON,
+        "PREFERRED_LLM": PREFERRED_LLM,
+        "LLM_CONFIG_OVERRIDE": LLM_CONFIG_OVERRIDE,
+        "PHASES": PHASES,
+        "COMPLETION_MESSAGE": COMPLETION_MESSAGE,
+        "COMPLETION_CELEBRATION": COMPLETION_CELEBRATION,
+        "SCORING_DEBUG_MODE": SCORING_DEBUG_MODE,
+        "DISPLAY_COST": DISPLAY_COST,
+        "RAG_IMPLEMENTATION": RAG_IMPLEMENTATION,
+        "SOURCE_DOCUMENT": SOURCE_DOCUMENT,
+        "PAGE_CONFIG": PAGE_CONFIG,
+        "SIDEBAR_HIDDEN": SIDEBAR_HIDDEN,
+        "TEMPLATES": TEMPLATES
+    }
+    main(config)

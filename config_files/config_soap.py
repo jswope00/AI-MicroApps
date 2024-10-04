@@ -220,3 +220,37 @@ COMPLETION_CELEBRATION = False
 
 RAG_IMPLEMENTATION = False # make true only when document exists
 SOURCE_DOCUMENT = "sample.pdf" # file uploaded in source_docs if only
+
+PAGE_CONFIG = {
+    "page_title": "SOAP",
+    "page_icon": "️🧑",
+    "layout": "centered",
+    "initial_sidebar_state": "expanded"
+}
+
+SIDEBAR_HIDDEN = True
+
+TEMPLATES = {"Soap":"config_soap"}
+
+from main import main
+if __name__ == "__main__":
+    config = {
+        "APP_TITLE": APP_TITLE,
+        "APP_INTRO": APP_INTRO,
+        "APP_HOW_IT_WORKS": APP_HOW_IT_WORKS,
+        "HTML_BUTTON": HTML_BUTTON,
+        "PREFERRED_LLM": PREFERRED_LLM,
+        "LLM_CONFIG_OVERRIDE": LLM_CONFIG_OVERRIDE,
+        "PHASES": PHASES,
+        "COMPLETION_MESSAGE": COMPLETION_MESSAGE,
+        "COMPLETION_CELEBRATION": COMPLETION_CELEBRATION,
+        "SCORING_DEBUG_MODE": SCORING_DEBUG_MODE,
+        "DISPLAY_COST": DISPLAY_COST,
+        "RAG_IMPLEMENTATION": RAG_IMPLEMENTATION,
+        "SOURCE_DOCUMENT": SOURCE_DOCUMENT,
+        "PAGE_CONFIG": PAGE_CONFIG,
+        "SIDEBAR_HIDDEN": SIDEBAR_HIDDEN,
+        "TEMPLATES": TEMPLATES
+    }
+    main(config)
+

@@ -1,64 +1,36 @@
-import os
-import importlib
 import copy
 import re
-from llm_config import LLM_CONFIG
+import base64
+import mimetypes
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
-import base64
 from handlers import HANDLERS
-import mimetypes
-from master_config import *
+from llm_config import LLM_CONFIG
 
 # Folder where config files are stored
 CONFIG_FOLDER = "config_files"
 
 # Apply master page configuration
-st.set_page_config(
-    page_title=PAGE_CONFIG.get("page_title", "AI MicroApps"),
-    page_icon=PAGE_CONFIG.get("page_icon", "🤖"),
-    layout=PAGE_CONFIG.get("layout", "wide"),
-    initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
-)
+def apply_page_config():
+    PAGE_CONFIG = config.get('PAGE_CONFIG', {})
+    st.set_page_config(
+        page_title=PAGE_CONFIG.get("page_title", "AI MicroApps"),
+        page_icon=PAGE_CONFIG.get("page_icon", "🤖"),
+        layout=PAGE_CONFIG.get("layout", "wide"),
+        initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
+    )
 
-# Optionally hide the sidebar completely
-if SIDEBAR_HIDDEN:
-    hide_sidebar_style = """
-        <style>
-            [data-testid="stSidebar"] {display: none;}
-        </style>
-    """
-    st.markdown(hide_sidebar_style, unsafe_allow_html=True)
-
-# Select template from the sidebar
-selected_template = st.sidebar.selectbox("Select template", TEMPLATES.keys())
-
-if "template" not in st.session_state or st.session_state.template != selected_template:
-    st.session_state.template = selected_template
-    st.query_params["template"] = selected_template
-    # Clear all session state variables
-    keys_to_keep = ['template']  # Add any other keys you want to preserve
-    for key in list(st.session_state.keys()):
-        if key not in keys_to_keep:
-            del st.session_state[key]
-    st.session_state['additional_prompt'] = ""
-    st.session_state['chat_history'] = []
-    st.session_state['CURRENT_PHASE'] = 0
-    st.session_state['TOTAL_PRICE'] = 0
-
-    st.rerun()
-
-config_file = TEMPLATES[selected_template]
-
-if config_file:
-    module_path = f"{CONFIG_FOLDER}.{config_file}"
-    config_module = importlib.import_module(module_path)
-    for attr in dir(config_module):
-        if not attr.startswith("__"):
-            globals()[attr] = getattr(config_module, attr)
-else:
-    from config import *
+# Optionally hide the sidebar
+def hide_sidebar():
+    SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', False)
+    if SIDEBAR_HIDDEN:
+        hide_sidebar_style = """
+            <style>
+                [data-testid="stSidebar"] {display: none;}
+            </style>
+        """
+        st.markdown(hide_sidebar_style, unsafe_allow_html=True)
 
 # Function to merge configuration dictionaries
 def merge_configurations(defaults, overrides):
@@ -72,25 +44,6 @@ def merge_configurations(defaults, overrides):
         else:
             merged[key] = override_values
     return merged
-
-LLM_CONFIGURATIONS = merge_configurations(LLM_CONFIG, LLM_CONFIG_OVERRIDE)
-
-user_input = {}
-function_map = {
-    "text_input": st.text_input,
-    "text_area": st.text_area,
-    "warning": st.warning,
-    "button": st.button,
-    "radio": st.radio,
-    "markdown": st.markdown,
-    "selectbox": st.selectbox,
-    "checkbox": st.checkbox,
-    "slider": st.slider,
-    "number_input": st.number_input,
-    "image": st.image,
-    "file_uploader": st.file_uploader
-}
-
 
 # Function to evaluate conditional logic
 def evaluate_conditions(user_input, condition):
@@ -135,13 +88,27 @@ def evaluate_conditions(user_input, condition):
                     return False
     return True
 
-
 # Function to build input fields based on configuration
-def build_field(phase_name, fields):
+def build_field(phase_name, fields,user_input):
     """
     Builds the input fields for a given phase based on the 'fields' configuration.
     Checks for 'showIf' conditions before displaying fields.
     """
+    function_map = {
+        "text_input": st.text_input,
+        "text_area": st.text_area,
+        "warning": st.warning,
+        "button": st.button,
+        "radio": st.radio,
+        "markdown": st.markdown,
+        "selectbox": st.selectbox,
+        "checkbox": st.checkbox,
+        "slider": st.slider,
+        "number_input": st.number_input,
+        "image": st.image,
+        "file_uploader": st.file_uploader
+    }
+
     for field_key, field in fields.items():
         # Check showIf conditions
         if 'showIf' in field:
@@ -227,22 +194,21 @@ def build_field(phase_name, fields):
         with stylable_container(
                 key="large_label",
                 css_styles="""
-                label p {
-                    font-weight: bold;
-                    font-size: 16px;
-                }
+                    label p {
+                        font-weight: bold;
+                        font-size: 16px;
+                    }
 
-                div[role="radiogroup"] label p{
-                    font-weight: unset !important;
-                    font-size: unset !important;
-                }
-                """,
+                    div[role="radiogroup"] label p{
+                        font-weight: unset !important;
+                        font-size: unset !important;
+                    }
+                    """,
         ):
             user_input[field_key] = my_input_function(**kwargs)
 
-
 # Function to execute LLM completions
-def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image_urls=None):
+def execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, user_prompt, image_urls=None):
     """
     Executes LLM completions using the selected model.
     """
@@ -269,8 +235,8 @@ def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image
         "price_output_token_1M": model_config["price_output_token_1M"],
         "TOTAL_PRICE": 0,
         "chat_history": chat_history,
-        "RAG_IMPLEMENTATION":RAG_IMPLEMENTATION if 'RAG_IMPLEMENTATION' in locals() else False,
-        "file_path":"source_docs/"+SOURCE_DOCUMENT if 'SOURCE_DOCUMENT' in locals() else None,
+        "RAG_IMPLEMENTATION": RAG_IMPLEMENTATION if 'RAG_IMPLEMENTATION' in locals() else False,
+        "file_path": "source_docs/" + SOURCE_DOCUMENT if 'SOURCE_DOCUMENT' in locals() else None,
     }
 
     handler = HANDLERS.get(family)
@@ -284,11 +250,12 @@ def execute_llm_completions(selected_llm, phase_instructions, user_prompt, image
     return result
 
 # Function to apply conditional logic to prompts
-def prompt_conditionals(user_input, phase_name=None):
+def prompt_conditionals(user_input, phase_name=None, phases=None):
     """
     Applies conditional logic to determine the correct prompt based on 'user_input' and 'phase_name'.
+    Uses the provided 'phases' to retrieve phase-specific information.
     """
-    phase = PHASES[phase_name]
+    phase = phases[phase_name]
     if isinstance(phase["user_prompt"], str):
         base_prompt = phase["user_prompt"]
     else:
@@ -300,19 +267,19 @@ def prompt_conditionals(user_input, phase_name=None):
         base_prompt = "\n".join(additional_prompts)
     return base_prompt
 
+
 # Function to format user prompt with provided inputs
-def format_user_prompt(prompt, user_input, phase_name=None):
+def format_user_prompt(prompt, user_input, phase_name=None, phases=None):
     """
     Formats the 'prompt' using the provided 'user_input' and applies any conditional logic.
+    'phases' is required to access phase-specific data.
     """
     try:
-        # Apply conditional logic to determine the correct prompt based on user_input and phase_name
-        prompt = prompt_conditionals(user_input, phase_name)
-        # Safely format the prompt using the keys that are actually in user_input
+        prompt = prompt_conditionals(user_input, phase_name, phases)
         formatted_user_prompt = prompt.format(**{k: user_input.get(k, '') for k in re.findall(r'{(\w+)}', prompt)})
         return formatted_user_prompt
     except Exception as e:
-        print("Error occurred:", e)
+        print(f"Error occurred in format_user_prompt: {e}")
         formatted_user_prompt = prompt.format(**user_input)
         return formatted_user_prompt
 
@@ -328,7 +295,6 @@ def st_store(input, phase_name, phase_key, field_key=""):
         key = f"{phase_name}_{phase_key}"
     st.session_state[key] = input
 
-
 # Function to build scoring instructions
 def build_scoring_instructions(rubric):
     """
@@ -339,7 +305,6 @@ def build_scoring_instructions(rubric):
         \n\nPlease output your response as JSON, using this format: '{{{{ "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }}}}'
         """
     return scoring_instructions
-
 
 # Function to extract score from AI response
 def extract_score(text):
@@ -353,9 +318,8 @@ def extract_score(text):
     else:
         return 0
 
-
 # Function to check if the score meets the minimum requirement
-def check_score(PHASE_NAME):
+def check_score(PHASES,PHASE_NAME):
     """
     Checks if the AI score meets the minimum score requirement for the phase.
     """
@@ -371,19 +335,18 @@ def check_score(PHASE_NAME):
         st.session_state[f"{PHASE_NAME}_phase_status"] = False
         return False
 
-
 # Function to skip the current phase
-def skip_phase(PHASE_NAME, No_Submit=False):
+def skip_phase(PHASE_NAME, phases, user_input, No_Submit=False):
     """
     Skips the current phase, optionally without submitting data.
     """
-    phase_fields = PHASES[PHASE_NAME]["fields"]
+    phase_fields = phases[PHASE_NAME]["fields"]  # Access fields from the passed phases argument
     for field_key in phase_fields:
         st_store(user_input[field_key], PHASE_NAME, "user_input", field_key)
     if not No_Submit:
         st.session_state[f"{PHASE_NAME}_ai_response"] = "This phase was skipped."
     st.session_state[f"{PHASE_NAME}_phase_status"] = True
-    st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+    st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(phases) - 1)
 
 
 # Function to display a celebration effect
@@ -398,9 +361,8 @@ def celebration():
         animation_length=1,
     )
 
-
 # Function to find image URLs for uploaded images
-def find_image_urls(fields):
+def find_image_urls(user_input,fields):
     """
     Extracts and encodes image URLs from file uploads in the form fields.
     """
@@ -414,7 +376,6 @@ def find_image_urls(fields):
                 uploaded_files = [uploaded_files]
             for uploaded_file in uploaded_files:
                 if uploaded_file:
-                    # Read and encode file content
                     file_content = uploaded_file.read()
                     mime_type, _ = mimetypes.guess_type(uploaded_file.name)
                     if not mime_type:
@@ -424,28 +385,80 @@ def find_image_urls(fields):
                     image_urls.append(image_url)
     return image_urls
 
-
 # Main function to run the application
-def main():
+def main(config):
     """
     The main entry point for the Streamlit application. Handles page setup, form generation,
     prompt processing, and interaction with LLM for responses.
     """
+    # Dynamically get configurations from globals
+    PAGE_CONFIG = config.get('PAGE_CONFIG', {})
+    SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', False)
+    DISPLAY_COST = config.get('DISPLAY_COST', False)
+    APP_TITLE = config.get('APP_TITLE', 'Default App Title')
+    APP_INTRO = config.get('APP_INTRO', '')
+    APP_HOW_IT_WORKS = config.get('APP_HOW_IT_WORKS', '')
+    SHARED_ASSET = config.get('SHARED_ASSET', None)
+    HTML_BUTTON = config.get('HTML_BUTTON', None)
+    PHASES = config.get('PHASES', {})
+    COMPLETION_MESSAGE = config.get('COMPLETION_MESSAGE', 'Process completed successfully.')
+    COMPLETION_CELEBRATION = config.get('COMPLETION_CELEBRATION', False)
+    LLM_CONFIGURATIONS = LLM_CONFIG
+    PREFERRED_LLM = config.get('PREFERRED_LLM', 'openai')
+    TEMPLATES = config.get('TEMPLATES', '')
+    SYSTEM_PROMPT = config.get('SYSTEM_PROMPT', '')
+
+    # Apply the page configuration
+    if PAGE_CONFIG:
+        st.set_page_config(
+            page_title=PAGE_CONFIG.get("page_title", "AI MicroApps"),
+            page_icon=PAGE_CONFIG.get("page_icon", "🤖"),
+            layout=PAGE_CONFIG.get("layout", "wide"),
+            initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
+        )
+
+    # Optionally hide the sidebar
+    if SIDEBAR_HIDDEN:
+        hide_sidebar_style = """
+                <style>
+                    [data-testid="stSidebar"] {display: none;}
+                </style>
+            """
+        st.markdown(hide_sidebar_style, unsafe_allow_html=True)
+
+    # Select template from the sidebar
+    selected_template = st.sidebar.selectbox("Select template", TEMPLATES.keys())
+
+    if "template" not in st.session_state or st.session_state.template != selected_template:
+        st.session_state.template = selected_template
+        st.query_params["template"] = selected_template
+        # Clear all session state variables
+        keys_to_keep = ['template']  # Add any other keys you want to preserve
+        for key in list(st.session_state.keys()):
+            if key not in keys_to_keep:
+                del st.session_state[key]
+        st.session_state['additional_prompt'] = ""
+        st.session_state['chat_history'] = []
+        st.session_state['CURRENT_PHASE'] = 0
+        st.session_state['TOTAL_PRICE'] = 0
+
+        st.rerun()
+
+    user_input = {}
+
     image_urls = []
     if 'TOTAL_PRICE' not in st.session_state:
         st.session_state['TOTAL_PRICE'] = 0
 
+    # Handle sidebar and model selection
     with st.sidebar:
         llm_options = list(LLM_CONFIGURATIONS.keys())
-        # Find the index of the selected_key in the list of options
         llm_index = llm_options.index(PREFERRED_LLM) if PREFERRED_LLM in llm_options else 0
 
         selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), index=llm_index,
                                     key="selected_llm")
-        # Get the initial LLM configuration from the selected model
-        initial_config = LLM_CONFIGURATIONS[selected_llm]
 
-        # Parameter adjustment inputs
+        initial_config = LLM_CONFIGURATIONS[selected_llm]
         st.session_state['llm_config'] = {
             "model": initial_config["model"],
             "temperature": st.slider("Temperature", min_value=0.0, max_value=1.0,
@@ -465,28 +478,31 @@ def main():
         }
 
         if DISPLAY_COST:
-            st.write("Price : ${:.6f}".format(st.session_state['TOTAL_PRICE']))
+            st.write("Price: ${:.6f}".format(st.session_state['TOTAL_PRICE']))
 
-        with st.sidebar:
-            st.subheader("Chat History")
-            for history in st.session_state['chat_history']:
-                st.markdown(f"**User:** {history['user']}")
-                if 'images' in history:
-                    for image in history['images']:
-                        st.image(image)
-                st.markdown(f"**AI:** {history['assistant']}")
-                st.markdown("---")
+        # Display chat history in the sidebar
+        st.subheader("Chat History")
+        for history in st.session_state['chat_history']:
+            st.markdown(f"**User:** {history['user']}")
+            if 'images' in history:
+                for image in history['images']:
+                    st.image(image)
+            st.markdown(f"**AI:** {history['assistant']}")
+            st.markdown("---")
 
+    # Main content rendering
     if 'CURRENT_PHASE' not in st.session_state:
         st.session_state['CURRENT_PHASE'] = 0
 
     st.title(APP_TITLE)
     st.markdown(APP_INTRO)
 
+    # Optionally show "How it Works" section
     if APP_HOW_IT_WORKS:
         with st.expander("Learn how this works", expanded=False):
             st.markdown(APP_HOW_IT_WORKS)
 
+    # Optional asset download
     if SHARED_ASSET:
         with open(SHARED_ASSET["path"], "rb") as asset_file:
             st.download_button(label=SHARED_ASSET["button_text"],
@@ -497,8 +513,8 @@ def main():
     if HTML_BUTTON:
         st.link_button(label=HTML_BUTTON["button_text"], url=HTML_BUTTON["url"])
 
+    # Phase rendering and logic
     i = 0
-
     while i <= st.session_state['CURRENT_PHASE']:
         submit_button = False
         skip_button = False
@@ -511,10 +527,9 @@ def main():
 
         st.write(f"#### Phase {i + 1}: {PHASE_DICT['name']}")
 
-        build_field(PHASE_NAME, fields)
+        build_field(PHASE_NAME, fields,user_input)
 
         key = f"{PHASE_NAME}_phase_status"
-
         user_prompt_template = PHASE_DICT.get("user_prompt", "")
         if PHASE_DICT.get("show_prompt", False):
             with st.expander("View/edit full prompt"):
@@ -522,11 +537,11 @@ def main():
                     label="Prompt",
                     height=100,
                     max_chars=50000,
-                    value=format_user_prompt(user_prompt_template, user_input, PHASE_NAME),
+                    value=format_user_prompt(user_prompt_template, user_input, PHASE_NAME,PHASES),
                     disabled=PHASE_DICT.get("read_only_prompt", False)
                 )
         else:
-            formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME)
+            formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME,PHASES)
 
         if PHASE_DICT.get("no_submission", False):
             if key not in st.session_state:
@@ -557,7 +572,6 @@ def main():
             st.info(st.session_state[key], icon="🤖")
 
         key = f"{PHASE_NAME}_ai_response_revision_1"
-        # If there are any revisions, enter the loop
         if key in st.session_state and st.session_state[key]:
             z = 1
             while z <= PHASE_DICT.get("max_revisions", 10):
@@ -572,16 +586,16 @@ def main():
 
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
 
-            image_urls = find_image_urls(PHASE_DICT.get('fields', {}))
+            image_urls = find_image_urls(user_input,PHASE_DICT.get('fields', {}))
 
             if PHASE_DICT.get("ai_response", True):
                 if PHASE_DICT.get("scored_phase", False):
                     if "rubric" in PHASE_DICT:
                         scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                        ai_feedback = execute_llm_completions(selected_llm, phase_instructions, formatted_user_prompt,
+                        ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, formatted_user_prompt,
                                                               image_urls)
                         st.info(body=ai_feedback, icon="🤖")
-                        ai_score = execute_llm_completions(selected_llm, scoring_instructions, ai_feedback)
+                        ai_score = execute_llm_completions(SYSTEM_PROMPT,selected_llm, scoring_instructions, ai_feedback)
                         st.info(ai_score, icon="🤖")
                         st_store(ai_feedback, PHASE_NAME, "ai_response")
                         st_store(ai_score, PHASE_NAME, "ai_score_debug")
@@ -597,7 +611,7 @@ def main():
                         st.session_state['chat_history'].append(chat_history_entry)
                         st.session_state["ai_score"] = ai_score
                         st.session_state['score'] = score
-                        if check_score(PHASE_NAME):
+                        if check_score(PHASES,PHASE_NAME):
                             st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1,
                                                                     len(PHASES) - 1)
                             st.session_state[f"{PHASE_NAME}_phase_completed"] = True
@@ -607,7 +621,7 @@ def main():
                     else:
                         st.error('You need to include a rubric for a scored phase', icon="🚨")
                 else:
-                    ai_feedback = execute_llm_completions(selected_llm, phase_instructions, formatted_user_prompt,
+                    ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, formatted_user_prompt,
                                                           image_urls)
                     st_store(ai_feedback, PHASE_NAME, "ai_response")
                     chat_history_entry = {
@@ -625,7 +639,7 @@ def main():
                 res_box = st.info(body="", icon="🤖")
                 result = ""
                 hard_coded_message = PHASE_DICT.get('custom_response', None)
-                hard_coded_message = format_user_prompt(hard_coded_message, user_input, PHASE_NAME)
+                hard_coded_message = format_user_prompt(hard_coded_message, user_input, PHASE_NAME,PHASES)
                 for char in hard_coded_message:
                     result += char
                     res_box.info(body=result, icon="🤖")
@@ -644,11 +658,10 @@ def main():
 
         if PHASE_DICT.get("allow_revisions", False):
             if f"{PHASE_NAME}_ai_response" in st.session_state:
-                # Check if the current phase is the latest completed phase
-                is_latest_completed_phase = i == st.session_state['CURRENT_PHASE'] or (i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
+                is_latest_completed_phase = i == st.session_state['CURRENT_PHASE'] or (
+                        i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
                     f"{list(PHASES.keys())[i + 1]}_phase_completed", False))
 
-                # Check if it's not the last phase and the phase wasn't skipped
                 is_last_phase = (PHASE_NAME == final_phase_name)
                 is_not_skipped = not st.session_state.get(f"{PHASE_NAME}_skipped", False)
 
@@ -665,11 +678,11 @@ def main():
 
                                 phase_instructions = PHASE_DICT.get("phase_instructions", "")
                                 user_prompt_template = PHASE_DICT.get("user_prompt", "")
-                                formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME)
+                                formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME,PHASES)
 
                                 formatted_user_prompt += st.session_state['additional_prompt']
 
-                                ai_feedback = execute_llm_completions(selected_llm, phase_instructions,
+                                ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions,
                                                                       formatted_user_prompt)
 
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
@@ -686,7 +699,7 @@ def main():
                             st.warning("Revision limits exceeded")
 
         if skip_button:
-            skip_phase(PHASE_NAME)
+            skip_phase(PHASE_NAME,PHASES,user_input)
             st.session_state[f"{PHASE_NAME}_phase_completed"] = True
             st.session_state[f"{PHASE_NAME}_skipped"] = True
             st.rerun()
@@ -697,6 +710,3 @@ def main():
                 celebration()
 
         i = min(i + 1, len(PHASES))
-
-if __name__ == "__main__":
-    main()
