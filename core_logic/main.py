@@ -23,11 +23,12 @@ def apply_page_config():
 
 # Optionally hide the sidebar
 def hide_sidebar():
-    SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', False)
+    SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', True)
     if SIDEBAR_HIDDEN:
         hide_sidebar_style = """
             <style>
                 [data-testid="stSidebar"] {display: none;}
+                [data-testid="stSidebarCollapsedControl"] {display: none;}
             </style>
         """
         st.markdown(hide_sidebar_style, unsafe_allow_html=True)
@@ -236,7 +237,7 @@ def execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, user
         "TOTAL_PRICE": 0,
         "chat_history": chat_history,
         "RAG_IMPLEMENTATION": RAG_IMPLEMENTATION if 'RAG_IMPLEMENTATION' in locals() else False,
-        "file_path": "source_docs/" + SOURCE_DOCUMENT if 'SOURCE_DOCUMENT' in locals() else None,
+        "file_path": "rag_docs/" + SOURCE_DOCUMENT if 'SOURCE_DOCUMENT' in locals() else None,
     }
 
     handler = HANDLERS.get(family)
@@ -393,11 +394,11 @@ def main(config):
     """
     # Dynamically get configurations from globals
     PAGE_CONFIG = config.get('PAGE_CONFIG',{})
-    SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', False)
+    SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', True)
     DISPLAY_COST = config.get('DISPLAY_COST', False)
     APP_TITLE = config.get('APP_TITLE',"Default Title")
-    APP_INTRO = config.get('APP_INTRO', "Default Intro")
-    APP_HOW_IT_WORKS = config.get('APP_HOW_IT_WORKS',"Default How it works")
+    APP_INTRO = config.get('APP_INTRO', "")
+    APP_HOW_IT_WORKS = config.get('APP_HOW_IT_WORKS',"")
     SHARED_ASSET = config.get('SHARED_ASSET', None)
     HTML_BUTTON = config.get('HTML_BUTTON', None)
     PHASES = config.get('PHASES', {"phase1":{"name":"default phase"}})
@@ -421,6 +422,7 @@ def main(config):
         hide_sidebar_style = """
                 <style>
                     [data-testid="stSidebar"] {display: none;}
+                    [data-testid="stSidebarCollapsedControl"] {display: none;}
                 </style>
             """
         st.markdown(hide_sidebar_style, unsafe_allow_html=True)

@@ -1,3 +1,4 @@
+APP_URL = "https://hotel-case-study.streamlit.app"
 Published=True
 
 APP_TITLE = "Hotel Case Study"

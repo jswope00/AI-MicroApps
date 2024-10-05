@@ -1,4 +1,4 @@
-APP_URL = "https://onmicro.ai"
+APP_URL = "https://ai-debate-partner.streamlit.app"
 APP_IMAGE = "ai_debate.png"
 PUBLISHED = True
 

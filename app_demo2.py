@@ -1,4 +1,5 @@
 PUBLISHED = True
+APP_URL = "https://microapp-demo2.streamlit.app"
 
 APP_TITLE = "MicroApp Demo App #2"
 APP_INTRO = """This app demonstrates all the various AI Prompt configurations that are available to a micro-app. It can be used to understand what kinds of actions a "phase" can accomplish, and how to configure those actions. 

@@ -1,4 +1,5 @@
 PUBLISHED = True
+APP_URL = "https://ai-zodiac.streamlit.app/"
 
 APP_TITLE = "Zodiac Symbol"
 

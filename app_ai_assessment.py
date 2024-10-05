@@ -1,4 +1,4 @@
-APP_URL = "https://onmicro.ai"
+APP_URL = "https://ai-assessment.streamlit.app"
 
 PUBLISHED = True
 

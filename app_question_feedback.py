@@ -1,4 +1,5 @@
 PUBLISHED = True
+APP_URL = "https://question-feedback.streamlit.app"
 
 APP_TITLE = "Question Feedback"
 APP_INTRO = """This app takes existing questions and provides pedogically sound feedback that explains the correct and incorrect answer(s). Immediate feedback is one of the most powerful tools that influences student comprehension. 

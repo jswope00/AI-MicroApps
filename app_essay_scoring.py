@@ -1,4 +1,5 @@
 PUBLISHED = False
+APP_URL = "https://ai-essay-scoring-demo.streamlit.app"
 
 APP_TITLE = "Essay Scoring"
 APP_INTRO = """
