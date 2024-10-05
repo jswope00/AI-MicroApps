@@ -1,4 +1,5 @@
 PUBLISHED = True
+APP_URL = "https://rubric-generator.streamlit.app"
 
 APP_TITLE = "Grading Rubric Generator"
 APP_INTRO = """This app generates a grading rubric according to the objectives of the course and assignment. 

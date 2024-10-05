@@ -1,4 +1,5 @@
 PUBLISHED = True
+APP_URL = "https://soap-scoring.streamlit.app/"
 
 APP_TITLE = "SOAP Notes Feedback"
 APP_INTRO = """This app provides feedback on written SOAP (subjective, objective, assessment, and plan) notes. It provides feedback in stages for more precision over the feedback provided. . 

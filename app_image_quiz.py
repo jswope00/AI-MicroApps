@@ -1,4 +1,5 @@
 PUBLISHED = True
+APP_URL = "https://image-quiz.streamlit.app"
 
 APP_TITLE = "Image Demonstration"
 APP_INTRO = """This app demonstrates AI microapp image fields. An instructor can share an image with the student and have the student answer questions about it. The AI will provide instructor-guided feedback.

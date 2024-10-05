@@ -1,4 +1,5 @@
 PUBLISHED = True
+APP_URL = "https://lo-analyst.streamlit.app"
 
 APP_TITLE = "Learning Objective Analyst"
 APP_INTRO = """
