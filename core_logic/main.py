@@ -236,7 +236,7 @@ def execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, user
         "TOTAL_PRICE": 0,
         "chat_history": chat_history,
         "RAG_IMPLEMENTATION": RAG_IMPLEMENTATION if 'RAG_IMPLEMENTATION' in locals() else False,
-        "file_path": "source_docs/" + SOURCE_DOCUMENT if 'SOURCE_DOCUMENT' in locals() else None,
+        "file_path": "rag_docs/" + SOURCE_DOCUMENT if 'SOURCE_DOCUMENT' in locals() else None,
     }
 
     handler = HANDLERS.get(family)
