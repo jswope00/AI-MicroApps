@@ -1,6 +1,6 @@
 APP_URL = "https://onmicro.ai"
 
-PUBLISHED = True
+PUBLISHED = False
 
 APP_TITLE = "Career Path Recommendation"
 

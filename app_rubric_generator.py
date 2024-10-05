@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 APP_TITLE = "Grading Rubric Generator"
 APP_INTRO = """This app generates a grading rubric according to the objectives of the course and assignment. 
 """

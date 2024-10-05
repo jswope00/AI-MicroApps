@@ -1,3 +1,5 @@
+Published=True
+
 APP_TITLE = "Hotel Case Study"
 
 APP_INTRO = """Promoting The Grand Horizon Boutique Hotel in Fairview City

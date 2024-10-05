@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 APP_TITLE = "Learning Objective Analyst"
 APP_INTRO = """
 This app uses AI to analyze a single or a set of learning objectives and return feedback on how to improve the objective. Specifically, this app measures how SMART (Specific, Measureable, Actionable, Realistic, Time-Bound) the objectives are.

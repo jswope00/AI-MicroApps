@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 ##AREAS OF FOCUS from https://asmepublications-onlinelibrary-wiley-com.sgu.idm.oclc.org/doi/epdf/10.1111/tct.13766 "Making Narrative Feedback Meanignful""
 
 # " narrative feedback frequently does not providethe level of specificity to reinforce strong performance and correctmistakes, leaving students dissatisfied with the feedback received."

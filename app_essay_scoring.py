@@ -1,3 +1,5 @@
+PUBLISHED = False
+
 APP_TITLE = "Essay Scoring"
 APP_INTRO = """
 """

@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 APP_TITLE = "MicroApp Demo App #1"
 APP_INTRO = """This app demonstrates all the fields that are available to a micro-app. It can be used to understand what kinds of inputs a micro-app can ask for, and how to configure those fields. 
 """

@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 APP_TITLE = "Flow chart Analysis"
 APP_INTRO = """This app demonstrates AI microapp image fields."""
 

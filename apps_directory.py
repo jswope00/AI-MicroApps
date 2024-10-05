@@ -6,7 +6,6 @@ import streamlit as st
 CURRENT_DIR = os.path.dirname(__file__)
 APP_IMAGES_DIR = os.path.join(CURRENT_DIR, "app_images")  # Folder where app images are stored
 
-
 def get_app_metadata(app_file):
     """Dynamically import each app file and extract its metadata."""
     module_name = os.path.splitext(app_file)[0]
@@ -26,81 +25,89 @@ def get_app_metadata(app_file):
         "description": getattr(app_module, "APP_INTRO", "No description provided."),
         "image": image_path,
         "url": getattr(app_module, "APP_URL", app_file),
-        "published": getattr(app_module, "PUBLISHED",False),
+        "published": getattr(app_module, "PUBLISHED", False),
     }
     return metadata
 
 # Function to display the apps
 def display_apps(apps_metadata):
-    """Display the apps in a 4x4 grid layout with clickable titles and tooltip for descriptions."""
-    # Add some custom CSS for the tooltip effect
+    """Display the apps in a responsive card layout grid."""
+    # Add custom CSS for card styling
     st.markdown("""
         <style>
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-            font-size: 18px;
+        .card {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            transition: 0.3s;
+            margin-bottom: 20px;
+            text-align: center;
         }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #555;
-            color: #fff;
-            text-align: left;
-            border-radius: 5px;
-            padding: 5px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
+        .card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.3);
         }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
+        .card img {
+            border-radius: 10px;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
         }
-        /* Align the elements to the right */
-        .app-title-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .card-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            color: #333;
         }
-        .right-side-icons {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-left: auto;
+        .card-description {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: normal;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 5; /* Limit to 5 lines */
+            -webkit-box-orient: vertical;
+        }
+        .card a {
+            text-decoration: none;
+            color: #0066cc;
+            font-weight: bold;
+        }
+        .card a:hover {
+            text-decoration: underline;
+        }
+        a.no-underline,
+        a.no-underline:hover {
+            text-decoration: none;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    cols = st.columns(4)  # Create four columns for the grid layout
+    # Creating a responsive card layout
+    cols = st.columns(4)  # Define a 4-column layout, adjust as necessary
     app_number = 1  # Initialize a counter for numbering apps
 
     for idx, app in enumerate(apps_metadata):
         if app.get('published', False):  # Check if the app is published
             col = cols[(app_number-1) % 4]  # Cycle through the columns
             with col:
-                with st.expander(f"MicroApp {app_number}", expanded=True):
-                    st.image(app["image"], use_column_width=True)
-                    st.markdown(f"""
-                        <div class="app-title-container">
-                            <strong>{app['title']}</strong>
-                                <div class="right-side-icons">
-                                    <div class="tooltip"> ℹ️
-                                        <span class="tooltiptext" style="font-size:12px;">{app['description']}</span>
-                                    </div>
-                                    <a href="{app['url']}" target="_blank" style="text-decoration:none;">
-                                        <span style="font-size:18px;">↗️</span>
-                                    </a>
-                                </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                st.markdown(f"""
+                    <a class="no-underline" href="{app['url']}" target="_blank"><div class="card">
+                        <img src="data:image/jpeg;base64,{get_image_base64(app['image'])}" alt="{app['title']}">
+                        <div class="card-title">{app['title']}</div>
+                        <div class="card-description">{app['description']}</div>
+                        <a href="{app['url']}" target="_blank">View App</a>
+                    </div></a>
+                """, unsafe_allow_html=True)
             app_number += 1  # Increment the counter
 
+def get_image_base64(image_path):
+    """Convert image to base64 for inline rendering."""
+    import base64
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
 
 def main():
     st.set_page_config(page_title="AI MicroApps", page_icon="🤖", layout="wide")

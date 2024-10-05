@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 APP_TITLE = "Zodiac Symbol"
 
 APP_INTRO = """This is a demonstration app that determines a user's zodiac symbol based on their birth month and date."""

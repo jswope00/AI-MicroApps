@@ -1,6 +1,8 @@
-APP_TITLE = "Fresno Test"
-APP_INTRO = """Evidence Based Medicine Competency Assessments
-This is an application that applies the Fresno test (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC143529/pdf/319.pdf) for competence in evidence based medicine, and provides feedback via AI using the same rubric as the Fresno test. It is an experimental app to determine the correlation between AI scoring and human scoring for a validated accurate and effective rubric. 
+PUBLISHED = True
+
+
+APP_TITLE = "Fresno Test for Evidence Based Medicine"
+APP_INTRO = """This is an application that applies the Fresno test (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC143529/pdf/319.pdf) for competence in evidence based medicine, and provides feedback via AI using the same rubric as the Fresno test. It is an experimental app to determine the correlation between AI scoring and human scoring for a validated accurate and effective rubric. 
 """
 
 APP_HOW_IT_WORKS = """

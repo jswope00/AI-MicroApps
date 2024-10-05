@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 APP_TITLE = "MCQ Generator"
 APP_INTRO = """This micro-app allows you to generate multiple-choice questions quickly and consistently. 
 It work with either GPT-3.5 Turbo, GPT-4, or both.

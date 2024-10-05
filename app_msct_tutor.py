@@ -1,3 +1,5 @@
+PUBLISHED = True
+
 APP_TITLE = "Modified Script Concordance Test (mSCT)"
 APP_INTRO = """This is an AI tutor that presents interactive medical case studies with diagnosis and treatment scenarios. 
 
