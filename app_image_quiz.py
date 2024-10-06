@@ -23,24 +23,33 @@ PHASES = {
         "fields": {
             "name": {
                 "type": "image",
-                "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Wrist_and_hand_deeper_palmar_dissection-numbers.svg/809px-Wrist_and_hand_deeper_palmar_dissection-numbers.svg.png",
-                "caption": "An diagram of a hand with indicators but no labels",
+                "image": "https://appsforeducation.s3.amazonaws.com/cholesterol.jpg",
+                "caption": "A series of artery cutaways showing a progression of some kind of blockage.",
             },
             "identify": {
-                "type": "text_input",
-                "label": """What is this a picture of?""",
-                "value": "It is an unlabeled diagram of a hand",
+                "type": "text_area",
+                "height": 125,
+                "label": """What is occuring in the progression shown in the image? Make sure to mention the specific condition, the yellow substance, and the risks of this condition.""",
+                "value": "The image depicts the progression of atherosclerosis, a condition in which plaque builds up inside the arteries. Atherosclerosis restricts blood flow and leads to increased risk of blod clots, heart attacks, and stroke. ",
             }
         },
         "no_submission": False,
-        "phase_instructions": "The user will upload an image. Then they will describe the image. They should mention that the image is of a hand. ",
+        # "phase_instructions": "The user will upload an image. Then they will describe the image. They should mention that the image is of a hand. ",
         "user_prompt": "{identify}",
         "allow_skip": True,
         "scored_phase": True,
         "rubric": """
-                1. Hand
-                    1 point - The user identifies that the image is of a hand.
-                    0 points - The user identies the image as something other than a hand.
+                1. atherosclerosis
+                    1 point - The user mentions atherosclerosis
+                    0 points - The user does not mention atherosclerosis
+                2. cholesterol/plaque
+                    1 point - The user correctly identifies that the image shows a plaque or cholesterol buildup. Either term is acceptable. 
+                    0 points - THe user does not mention plaque or cholesterol. 
+                3. risks
+                    3 point - The user mentions all relevant points: This condition restricts blood flow and increases risk of heart attack, stroke, and other cardiovascular conditions.
+                    2 point - The user mentions some of the relevant points: This condition restricts blood flow and increases risk of heart attack, stroke, and other cardiovascular conditions.
+                    1 points - THe user mentions at least one of the relevant points: This condition restricts blood flow and increases risk of heart attack, stroke, and other cardiovascular conditions.
+                    0 points - The user fails to mention any risks. 
             """,
         "minimum_score": 1
     },
@@ -80,7 +89,7 @@ PAGE_CONFIG = {
     "initial_sidebar_state": "expanded"
 }
 
-SIDEBAR_HIDDEN = True
+SIDEBAR_HIDDEN = False
 
 from core_logic.main import main
 if __name__ == "__main__":
