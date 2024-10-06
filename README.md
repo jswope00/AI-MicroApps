@@ -1,7 +1,7 @@
 <h1 align="center">AI MicroApps Template</h1>
 
 <p align="center">
-  <a href="https://ai-microapps.streamlit.app">Gallery</a> &bull; <a href="https://github.com/jswope00/AI-MicroApps-Docs">Documentation</a> &bull; <a href="https://www.youtube.com/@johnswope8421">YouTube</a>
+  <a href="https://ai-microapps.streamlit.app">Gallery</a> &bull; <a href="https://jswope00.github.io/AI-MicroApps-Docs/">Documentation</a> &bull; <a href="https://www.youtube.com/@johnswope8421">YouTube</a>
 </p>
 
 <p align="center">
