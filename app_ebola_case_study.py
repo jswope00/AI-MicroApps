@@ -46,6 +46,8 @@ Once the Ebola virus has infected the first human, transmission of the virus fro
 ## Survivor
 Ebola survivors face new challenges after recovery. Some survivors report effects such as tiredness and muscle aches and can face stigma as they re-enter their communities. """
 
+RUBRIC_EVALUATION_ENABLED = True
+
 PHASES = {
     "about": {
         "name": "About the Case Study",
@@ -63,6 +65,7 @@ PHASES = {
         "ai_response": True,
         "scored_phase": True,
         "minimum_score": 2,
+        "human_score":2,
         "rubric": """
             1. About
                 2 points - The user provides details that the case study is about Ebola and its transmission. 

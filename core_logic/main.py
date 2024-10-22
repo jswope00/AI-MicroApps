@@ -7,6 +7,7 @@ from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
 from core_logic.handlers import HANDLERS
 from core_logic.llm_config import LLM_CONFIG
+import numpy as np
 
 # Folder where config files are stored
 CONFIG_FOLDER = "config_files"
@@ -407,6 +408,8 @@ def main(config):
     LLM_CONFIGURATIONS = LLM_CONFIG
     PREFERRED_LLM = config.get('PREFERRED_LLM', 'openai')
     SYSTEM_PROMPT = config.get('SYSTEM_PROMPT', '')
+    RUBRIC_EVALUATION_ENABLED = config.get('RUBRIC_EVALUATION_ENABLED',False)
+    NUM_AI_RUNS = config.get('NUM_AI_RUNS',5)
 
     # Apply the page configuration
     if PAGE_CONFIG:
@@ -521,15 +524,11 @@ def main(config):
         skip_button = False
         final_phase_name = list(PHASES.keys())[-1]
         final_key = f"{final_phase_name}_ai_response"
-
         PHASE_NAME = list(PHASES.keys())[i]
         PHASE_DICT = PHASES[PHASE_NAME]
         fields = PHASE_DICT["fields"]
-
         st.write(f"#### Phase {i + 1}: {PHASE_DICT['name']}")
-
         build_field(PHASE_NAME, fields,user_input)
-
         key = f"{PHASE_NAME}_phase_status"
         user_prompt_template = PHASE_DICT.get("user_prompt", "")
         if PHASE_DICT.get("show_prompt", False):
@@ -543,17 +542,14 @@ def main(config):
                 )
         else:
             formatted_user_prompt = format_user_prompt(user_prompt_template, user_input, PHASE_NAME,PHASES)
-
         if PHASE_DICT.get("no_submission", False):
             if key not in st.session_state:
                 st.session_state[key] = True
                 st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                 st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                 st.rerun()
-
         if key not in st.session_state:
             st.session_state[key] = False
-
         if not st.session_state.get(f"{PHASE_NAME}_phase_completed", False):
             with st.container():
                 col1, col2 = st.columns(2)
@@ -563,15 +559,12 @@ def main(config):
                 with col2:
                     if PHASE_DICT.get("allow_skip", False):
                         skip_button = st.button(label="Skip Question", key=f"skip {i}")
-
         key = f"{PHASE_NAME}_ai_response"
         if key in st.session_state and st.session_state[key]:
             st.info(st.session_state[key], icon="🤖")
-
         key = f"{PHASE_NAME}_ai_score_debug"
         if key in st.session_state and st.session_state[key]:
             st.info(st.session_state[key], icon="🤖")
-
         key = f"{PHASE_NAME}_ai_response_revision_1"
         if key in st.session_state and st.session_state[key]:
             z = 1
@@ -580,92 +573,117 @@ def main(config):
                 if key in st.session_state and st.session_state[key]:
                     st.info(st.session_state[key], icon="🤖")
                 z += 1
-
         if submit_button:
             for field_key, field in fields.items():
                 st_store(user_input.get(field_key, ""), PHASE_NAME, "user_input", field_key)
-
             phase_instructions = PHASE_DICT.get("phase_instructions", "")
-
             image_urls = find_image_urls(user_input,PHASE_DICT.get('fields', {}))
 
-            if PHASE_DICT.get("ai_response", True):
-                if PHASE_DICT.get("scored_phase", False):
-                    if "rubric" in PHASE_DICT:
-                        scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
+            if RUBRIC_EVALUATION_ENABLED:
+                ai_scores = []  # List to store AI scores for variance calculation
+                for i in range(NUM_AI_RUNS):  # Loop to run the logic 5 times
+                    st.info(f"Iteration {i + 1}", icon="🔄")
+                    if PHASE_DICT.get("ai_response", True):
+                        if PHASE_DICT.get("scored_phase", False):
+                            if "rubric" in PHASE_DICT:
+                                scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
+                                # Step 1: Get AI feedback using the LLM completions
+                                ai_feedback = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions,
+                                                                      formatted_user_prompt, image_urls)
+                                st.info(body=ai_feedback, icon="🤖")
+                                # Step 2: Get AI score based on the rubric
+                                ai_score = execute_llm_completions(SYSTEM_PROMPT, selected_llm, scoring_instructions,
+                                                                   ai_feedback)
+                                # Store the feedback and score
+                                st_store(ai_feedback, PHASE_NAME, "ai_response")
+                                st_store(ai_score, PHASE_NAME, "ai_score_debug")
+                                # Extract the numerical score and store it
+                                score = extract_score(ai_score)
+                                st.info(score, icon="🤖")
+                                ai_scores.append(score)  # Append score to list for variance calculation
+                                st_store(score, PHASE_NAME, "ai_score")
+                                # Store in session state for later reference
+                                st.session_state["ai_score"] = ai_score
+                                st.session_state['score'] = score
+                # After 5 iterations, calculate the variance between AI scores and human_score
+                if "human_score" in PHASE_DICT:
+                    human_score = PHASE_DICT["human_score"]
+                    variance = np.var([human_score] + ai_scores)  # Calculate variance with human score included
+                    st.info(f"Variance between AI scores and human score: {variance:.2f}", icon="📊")
+                else:
+                    st.error("Human score not found in PHASE_DICT", icon="🚨")
+            else:
+                if PHASE_DICT.get("ai_response", True):
+                    if PHASE_DICT.get("scored_phase", False):
+                        if "rubric" in PHASE_DICT:
+                            scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
+                            ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, formatted_user_prompt,
+                                                                  image_urls)
+                            st.info(body=ai_feedback, icon="🤖")
+                            ai_score = execute_llm_completions(SYSTEM_PROMPT,selected_llm, scoring_instructions, ai_feedback)
+                            st.info(ai_score, icon="🤖")
+                            st_store(ai_feedback, PHASE_NAME, "ai_response")
+                            st_store(ai_score, PHASE_NAME, "ai_score_debug")
+                            score = extract_score(ai_score)
+                            st_store(score, PHASE_NAME, "ai_score")
+                            chat_history_entry = {
+                                "user": formatted_user_prompt,
+                                "assistant": ai_feedback
+                            }
+                            if image_urls:
+                                chat_history_entry["app_images"] = image_urls
+                            st.session_state['chat_history'].append(chat_history_entry)
+                            st.session_state["ai_score"] = ai_score
+                            st.session_state['score'] = score
+                            if check_score(PHASES,PHASE_NAME):
+                                st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1,
+                                                                        len(PHASES) - 1)
+                                st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+                                st.rerun()
+                            else:
+                                st.warning("You haven't passed. Please try again.")
+                        else:
+                            st.error('You need to include a rubric for a scored phase', icon="🚨")
+                    else:
                         ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, formatted_user_prompt,
                                                               image_urls)
-                        st.info(body=ai_feedback, icon="🤖")
-                        ai_score = execute_llm_completions(SYSTEM_PROMPT,selected_llm, scoring_instructions, ai_feedback)
-                        st.info(ai_score, icon="🤖")
                         st_store(ai_feedback, PHASE_NAME, "ai_response")
-                        st_store(ai_score, PHASE_NAME, "ai_score_debug")
-                        score = extract_score(ai_score)
-                        st_store(score, PHASE_NAME, "ai_score")
                         chat_history_entry = {
                             "user": formatted_user_prompt,
                             "assistant": ai_feedback
                         }
                         if image_urls:
                             chat_history_entry["app_images"] = image_urls
-
                         st.session_state['chat_history'].append(chat_history_entry)
-                        st.session_state["ai_score"] = ai_score
-                        st.session_state['score'] = score
-                        if check_score(PHASES,PHASE_NAME):
-                            st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1,
-                                                                    len(PHASES) - 1)
-                            st.session_state[f"{PHASE_NAME}_phase_completed"] = True
-                            st.rerun()
-                        else:
-                            st.warning("You haven't passed. Please try again.")
-                    else:
-                        st.error('You need to include a rubric for a scored phase', icon="🚨")
+                        st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+                        st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+                        st.rerun()
                 else:
-                    ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, formatted_user_prompt,
-                                                          image_urls)
-                    st_store(ai_feedback, PHASE_NAME, "ai_response")
+                    res_box = st.info(body="", icon="🤖")
+                    result = ""
+                    hard_coded_message = PHASE_DICT.get('custom_response', None)
+                    hard_coded_message = format_user_prompt(hard_coded_message, user_input, PHASE_NAME,PHASES)
+                    for char in hard_coded_message:
+                        result += char
+                        res_box.info(body=result, icon="🤖")
+                    st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
                     chat_history_entry = {
                         "user": formatted_user_prompt,
-                        "assistant": ai_feedback
+                        "assistant": hard_coded_message
                     }
                     if image_urls:
                         chat_history_entry["app_images"] = image_urls
-
                     st.session_state['chat_history'].append(chat_history_entry)
                     st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
                     st.session_state[f"{PHASE_NAME}_phase_completed"] = True
                     st.rerun()
-            else:
-                res_box = st.info(body="", icon="🤖")
-                result = ""
-                hard_coded_message = PHASE_DICT.get('custom_response', None)
-                hard_coded_message = format_user_prompt(hard_coded_message, user_input, PHASE_NAME,PHASES)
-                for char in hard_coded_message:
-                    result += char
-                    res_box.info(body=result, icon="🤖")
-                st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
-                chat_history_entry = {
-                    "user": formatted_user_prompt,
-                    "assistant": hard_coded_message
-                }
-                if image_urls:
-                    chat_history_entry["app_images"] = image_urls
-
-                st.session_state['chat_history'].append(chat_history_entry)
-                st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
-                st.session_state[f"{PHASE_NAME}_phase_completed"] = True
-                st.rerun()
-
         if PHASE_DICT.get("allow_revisions", False):
             if f"{PHASE_NAME}_ai_response" in st.session_state:
                 is_latest_completed_phase = i == st.session_state['CURRENT_PHASE'] or (
                         i == st.session_state['CURRENT_PHASE'] - 1 and not st.session_state.get(
                     f"{list(PHASES.keys())[i + 1]}_phase_completed", False))
-
                 is_last_phase = (PHASE_NAME == final_phase_name)
                 is_not_skipped = not st.session_state.get(f"{PHASE_NAME}_skipped", False)
-
                 if (is_latest_completed_phase or is_last_phase) and is_not_skipped:
                     with st.expander("Revise this response?"):
                         max_revisions = PHASE_DICT.get("max_revisions", 10)
@@ -698,16 +716,13 @@ def main(config):
                                 st.rerun()
                         else:
                             st.warning("Revision limits exceeded")
-
         if skip_button:
             skip_phase(PHASE_NAME,PHASES,user_input)
             st.session_state[f"{PHASE_NAME}_phase_completed"] = True
             st.session_state[f"{PHASE_NAME}_skipped"] = True
             st.rerun()
-
         if final_key in st.session_state and i == st.session_state['CURRENT_PHASE']:
             st.success(COMPLETION_MESSAGE)
             if COMPLETION_CELEBRATION:
                 celebration()
-
         i = min(i + 1, len(PHASES))
