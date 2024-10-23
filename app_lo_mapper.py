@@ -20,7 +20,7 @@ PHASES = {
         "fields": {
         },
         "user_prompt": [
-        ]
+        ],
         "ai_response": True,
         "allow_revisions": True,
         "show_prompt": True,
