@@ -35,6 +35,54 @@ PHASES = {
             }
         },
         "user_prompt": [
+            {
+            	"condition": {},
+            	"prompt": """Please review the content I provide and attempt to map specific sections of my content to learning objectives. 
+                An objective can map to zero, one or many pieces of content. Content might also map to more than one objective.
+                Please map no more than three pieces of content to an objective. If you find more than three, prioritize the most relevant three.
+                """
+            },
+            {
+            	"condition": {"suggestions": True},
+            	"prompt": "If a gap is found where a learning objective does not have any relevant content, please suggest some content to fill that gap."
+            },
+            {
+            	"condition": {"suggestions": False},
+            	"prompt": "If a gap is found where a learning objective does not have any relevant content, please only flag the gap but don't make any suggestions for how to fill it."
+            },
+            {
+            	"condition": {},
+            	"prompt": """Here is the format I'd like your output:
+                **[Learning Objective 1]**
+                - [One sentence reflecting the relevant content]
+                    - [Source text from the content]
+                - [One sentence reflecting the relevant content]
+                    - [Source text from the content]
+                - [Etc, for as much relevent content as there is]
+                    - [Source text from the content]
+
+                **[Learning Objective 2]**
+                - [One sentence reflecting the relevant content]
+                    - [Source text from the content]
+                - [One sentence reflecting the relevant content]
+                    - [Source text from the content]
+                - [Etc, for as much relevent content as there is]
+                    - [Source text from the content]
+
+                **[Learning Objective 3]**
+                - No content maps to this objective! [use this when you find no mappings]
+                
+                """
+            },
+            {
+            	"condition": {},
+            	"prompt": """Here are my learning objectives:
+                {learning_objectives}
+
+                Here is my content:
+                {content}
+                """
+            }
         ],
         "ai_response": True,
         "allow_revisions": True,
