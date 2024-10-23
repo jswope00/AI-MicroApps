@@ -430,6 +430,7 @@ def main(config):
     # Select template from the sidebar
     selected_template = APP_TITLE
 
+
     if "template" not in st.session_state or st.session_state.template != selected_template:
         st.session_state.template = selected_template
         st.query_params["template"] = selected_template
@@ -464,7 +465,7 @@ def main(config):
             "model": initial_config["model"],
             "temperature": st.slider("Temperature", min_value=0.0, max_value=1.0,
                                      value=float(initial_config.get("temperature", 1.0)), step=0.01),
-            "max_tokens": st.slider("Max Tokens", min_value=50, max_value=4000,
+            "max_tokens": st.slider("Max Tokens", min_value=50, max_value=10000,
                                     value=int(initial_config.get("max_tokens", 1000)), step=50),
             "top_p": st.slider("Top P", min_value=0.0, max_value=1.0, value=float(initial_config.get("top_p", 1.0)),
                                step=0.1),
