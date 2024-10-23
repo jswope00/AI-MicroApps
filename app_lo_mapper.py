@@ -16,7 +16,7 @@ SYSTEM_PROMPT = """
 
 PHASES = {
     "about": {
-        "name": "Learning Objectives",
+        "name": "Map Your Learning Objectives to Content",
         "fields": {
         },
         "user_prompt": [
