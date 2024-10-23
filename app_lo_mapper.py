@@ -12,12 +12,27 @@ HTML_BUTTON = {
 }
 
 SYSTEM_PROMPT = """
+You are an expert instructional designer tasked with aligning course content to specific learning objectives. For each learning objective, identify the most relevant content from the provided materials that will best support achieving that objective. Explain how the chosen content directly contributes to the mastery of the learning objective.
 """
 
 PHASES = {
     "about": {
         "name": "Map Your Learning Objectives to Content",
         "fields": {
+        	"learning_objectives": {
+                "type": "text_area",
+                "height": 200,
+                "label": "Please enter your learning objectives, separated by a new line or bullet points/dashes.",
+            },
+            "content": {
+                "type": "text_area",
+                "height": 400,
+                "label": """Enter your content which you'd like mapped to objectives"""
+            },
+            "suggestions": {
+                "type": "checkbox",
+                "label": "Suggest content to fill gaps?"
+            }
         },
         "user_prompt": [
         ],
