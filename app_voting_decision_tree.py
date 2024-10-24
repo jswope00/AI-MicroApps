@@ -6,7 +6,7 @@ APP_INTRO = """This app draws a custom flowchart to help your students decide wh
 """
 
 APP_HOW_IT_WORKS = """
-A simple flowchart can help students overwhelmed with classes fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nIt utilizes the OpenAI and other AI APIs to send a custom prompt to AI with the user's inputs and returns the AI's response. 
+A simple flowchart can help students overwhelmed with classes fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nOnce you've completed the form, copying the resulting code snippet and pasting it into the provided Mermaid Editor link draws a flowchart teachers can share in class or online.\n\nBe sure to check the results; to modify them, add a prompt at bottom to revise the chart or reload the page to start over.\n\nThis app uses John Swope's open-source AI MicroApp framework to send a custom prompt to OpenAI and/or other services. This app is a project of the Learning With AI initiative and is unaffiliated with Ballotpedia or any political party.
  """
 
 SHARED_ASSET = {
@@ -16,8 +16,6 @@ HTML_BUTTON = {
     "button_text": "BallotPedia.org Sample Ballot",
     "url": "https://ballotpedia.org/wiki/index.php?title=Sample_Ballot_Lookup&Source=sitenotice"    
 }
-
-
 
 SYSTEM_PROMPT = """Acting as an expert in data visualization, you will generate the code required to draw a decision tree. You must use the syntax for the Mermaid.js JavaScript library to produce the visualization. Do not create an image directly with a text-to-image generator like DALL-E; it must be constructed with the markdown-like Mermaid.js code."""
 
@@ -55,12 +53,14 @@ PHASES = {
                 "label": """Where can students vote on-campus?""",
                 "help": "Give one or more times and/or addresses. Short answers fit the flowchart best!",
                 "value": "9am-5pm in 123 Susan B. Anthony Hall",
+                "showIf": {"oncampus-option": True},
             },
              "oncampus-requirements": {
                 "type": "text_input",
                 "label": """What must students do to vote on campus?""",
                 "help": "Mention any requirements for voting in that location.",
                 "value": "Bring a photo id and proof of residency",
+                "showIf": {"oncampus-option": True},
             },
             "offcampus-option": {
                 "type": "checkbox",
@@ -72,12 +72,14 @@ PHASES = {
                 "label": """Where can students vote off-campus?""",
                 "help": "Give one or more times and/or addresses. Short answers fit the flowchart best!",
                 "value": "9am-5pm at the Springfield Town Hall, 789 Main Street",
+                "showIf": {"offcampus-option": True},
             },
               "offcampus-requirements": {
                 "type": "text_input",
                 "label": """What must students do to vote off campus?""",
                 "help": "Mention any requirements for voting in that location.",
                 "value": "Bring a photo id and proof of residency",
+                "showIf": {"offcampus-option": True},
             },
         },
         "user_prompt": [
