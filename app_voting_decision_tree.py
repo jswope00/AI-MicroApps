@@ -6,7 +6,7 @@ APP_INTRO = """This app draws a custom flowchart to help your students decide wh
 """
 
 APP_HOW_IT_WORKS = """
-A simple flowchart can help students overwhelmed with classes fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nOnce you've completed the form, copying the resulting code snippet and pasting it into the provided Mermaid Editor link draws a flowchart teachers can share in class or online.\n\nBe sure to check the results; to modify them, add a prompt at bottom to revise the chart or reload the page to start over.\n\nThis app uses John Swope's open-source AI MicroApp framework to send a custom prompt to OpenAI and/or other services. This app is a project of the Learning With AI initiative and is unaffiliated with Ballotpedia or any political party.
+A simple flowchart can help overwhelmed students fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nOnce you've completed the form, copying the resulting code snippet and pasting it into the provided Mermaid Editor link draws a flowchart teachers can share in class or online.\n\nBe sure to check the results; to modify them, add a prompt at bottom to revise the chart or reload the page to start over.\n\nThis app uses John Swope's open-source AI MicroApp framework (AppsForEducation.ai) to send a custom prompt to OpenAI and/or other services. It's a project of the Learning With AI initiative (LearnWithAI.org) and is unaffiliated with Ballotpedia or any political party.
  """
 
 SHARED_ASSET = {
