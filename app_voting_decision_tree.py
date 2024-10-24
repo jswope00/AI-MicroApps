@@ -1,8 +1,8 @@
 PUBLISHED = False
-APP_URL = "https://voting-decision-tree.streamlit.app"
+APP_URL = "https://voting-flowchart.streamlit.app"
 
-APP_TITLE = "How To Vote: A Decision Tree Generator for College Students"
-APP_INTRO = """This app helps you draw a custom flowchart to help your students decide when and where to vote. 
+APP_TITLE = "How To Vote: An Instruction Generator for College Students"
+APP_INTRO = """This app draws a custom flowchart to help your students decide when and where to vote. 
 """
 
 APP_HOW_IT_WORKS = """
@@ -28,6 +28,12 @@ PHASES = {
             "info": {
                 "type": "markdown",
                 "body": "Select the options that your students have available to them to generate a shareable voting decision tree. Students should have at least the option to vote at home, on-campus, or off-campus in order for the tool to generate results."
+            },
+            "title": {
+                "type": "text_input",
+                "label": """Give a custom title for your flowchart.""",
+                "help": "A short one is best.",
+                "value": "How to vote at the University of Springfield",
             },
             "hometown-option": {
                 "type": "checkbox",
@@ -81,7 +87,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- Start off by asking if the user wants to vote. If no, then tell them thank you and end the branch. If yes, then provide the following options:\n",
+                "prompt": "- Start off by adding the a label at the top of the chart using Mermaid.js syntax, ie '---[return]{title}[return]---'.",
             },
             {
                 "condition": {"$or":[{"hometown-option": True},{"absentee-option": True}]},
