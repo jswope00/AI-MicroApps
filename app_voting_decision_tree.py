@@ -21,7 +21,7 @@ SYSTEM_PROMPT = """Acting as an expert in data visualization, you will generate 
 
 PHASES = {
    "tree-generation": {
-        "name": "Build your How To Vote Flowchart",
+        "name": "Build your How To Vote flowchart",
         "fields": {
             "info": {
                 "type": "markdown",
