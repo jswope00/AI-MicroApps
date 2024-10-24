@@ -97,11 +97,11 @@ PHASES = {
             },
             {
                 "condition": {"oncampus-option": True},
-                "prompt": "Vote on campus.\n End the branch with a box that includes \"{oncampus-locations}\" and \"{oncampus-requirements}\"\n",
+                "prompt": "Vote on campus.\n End the branch with a box that includes \"{oncampus-locations}\" and, on a new line using the Mermaid markdown syntax for italics, the words \"{oncampus-requirements}\"\n",
             },
             {
                 "condition": {"offcampus-option": True},
-                "prompt": "Vote off campus.\n End the branch with a box that includes \"{offcampus-locations}\" and \"{offcampus-requirements}\"\n",
+                "prompt": "Vote off campus.\n End the branch with a box that includes \"{offcampus-locations}\" and, on a new line using the Mermaid markdown syntax for italics, the words \"{offcampus-requirements}\"\n",
             },
             {
                 "condition": {},
