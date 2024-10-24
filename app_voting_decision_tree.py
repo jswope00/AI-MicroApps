@@ -87,7 +87,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- Start off by adding the a label at the top of the chart using Mermaid.js syntax, ie '---[return]{title}[return]---'.",
+                "prompt": "- The first box at the top of the chart should have the contents {title}.",
             },
             {
                 "condition": {"$or":[{"hometown-option": True},{"absentee-option": True}]},
