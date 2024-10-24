@@ -132,8 +132,8 @@ LLM_CONFIG_OVERRIDE = {"gpt-4o-mini": {
 }
 
 PAGE_CONFIG = {
-    "page_title": "Voting Decision Tree",
-    "page_icon": "️✅",
+    "page_title": "How To Vote Flowchart generator",
+    "page_icon": "️🗳️",
     "layout": "centered",
     "initial_sidebar_state": "collapsed"
 }
