@@ -6,7 +6,7 @@ APP_INTRO = """This app draws a custom flowchart to help your students decide wh
 """
 
 APP_HOW_IT_WORKS = """
-A simple flowchart can help overwhelmed students fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nOnce you've completed the form, copying the resulting code snippet and pasting it into the provided Mermaid Editor link draws a flowchart teachers can share in class or online.\n\nBe sure to check the results; to modify them, add a prompt at bottom to revise the chart or reload the page to start over.\n\nThis app uses John Swope's open-source AI MicroApp framework (AppsForEducation.ai) to send a custom prompt to OpenAI and/or other services. It's a project of the Learning With AI initiative (LearnWithAI.org) and is unaffiliated with Ballotpedia or any political party.
+A simple flowchart can help overwhelmed students fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nOnce you've completed the form, copying the resulting code snippet and pasting it into the provided Mermaid Editor link draws a flowchart; click Fullscreen for a URL without code that you can share in class or online.\n\nBe sure to check the results. To modify them, add a prompt at bottom to revise the chart or reload the page to start over. (You will also need to repeat the process in the Mermaid editor to create a new fullscreen chart.\n\nThis app uses John Swope's open-source AI MicroApp framework (AppsForEducation.ai) to send a custom prompt to OpenAI and/or other services. It's a project of the Learning With AI initiative (LearnWithAI.org) and is unaffiliated with Ballotpedia or any political party.
  """
 
 SHARED_ASSET = {
@@ -105,7 +105,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": """Once you have shared the Mermaid.js code to generate this flowchart, tell the user to paste in into the Mermaid live editor, and give the user a link to https://mermaid.live. Also tell the user that non-partisan information about candidates and issues on their ballot can be found at Ballotpedia, and give them a link to https://ballotpedia.org/wiki/index.php?title=Sample_Ballot_Lookup&Source=sitenotice with a recommendation to type their zip code into the search box."""
+                "prompt": """Once you have shared the Mermaid.js code to generate this flowchart, tell the user to paste it into the Mermaid live editor, giving the user a link to https://mermaid.live, and tell the user to click Fullscreen for a shareable URL or screenshot. Also tell the user that non-partisan information about candidates and issues on their ballot can be found at Ballotpedia, and give them a link to https://ballotpedia.org/wiki/index.php?title=Sample_Ballot_Lookup&Source=sitenotice with a recommendation to type their zip code into the search box."""
             },
           ],
         "ai_response": True,
@@ -143,7 +143,7 @@ SIDEBAR_HIDDEN = True
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
 
-COMPLETION_MESSAGE = "⚠️ Chatbots can generate incorrect results; always check the output before publishing it. We hope this app makes voting easier!"
+COMPLETION_MESSAGE = "⚠️ Chatbots can generate incorrect results; always check the output before sharing it. We hope this app makes voting easier!"
 COMPLETION_CELEBRATION = False
 
 from core_logic.main import main
