@@ -2,7 +2,7 @@ PUBLISHED = False
 APP_URL = "https://voting-flowchart.streamlit.app"
 
 APP_TITLE = "How To Vote: An Instruction Generator for College Students"
-APP_INTRO = """This app draws a custom flowchart to help your students decide when and where to vote. 
+APP_INTRO = """This app draws a custom flowchart to help your students choose when and where to vote. 
 """
 
 APP_HOW_IT_WORKS = """
@@ -21,11 +21,11 @@ SYSTEM_PROMPT = """Acting as an expert in data visualization, you will generate 
 
 PHASES = {
    "tree-generation": {
-        "name": "Build your Voting Decision Chart",
+        "name": "Build your How To Vote Flowchart",
         "fields": {
             "info": {
                 "type": "markdown",
-                "body": "Select the options that your students have available to them to generate a shareable voting decision tree. Students should have at least the option to vote at home, on-campus, or off-campus in order for the tool to generate results."
+                "body": "Select the options available to your students to generate a shareable voting decision tree. The options must include either voting at home, on campus, off campus, or some combination of these three."
             },
             "title": {
                 "type": "text_input",
