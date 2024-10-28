@@ -129,14 +129,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": """Format each question like the following:
-            Question: [Question Text] \n
-            A) [Answer A] \n
-            B) [Answer B] \n
-            ....
-            N) [Answer N] \n
-
-            Solution: [Answer A, B...N]\n\n"""
+                "prompt": """Format each question in OLX format so that I can upload to Open edX."""
             },
             {
                 "condition": {},
