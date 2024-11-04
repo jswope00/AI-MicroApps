@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://lo-mapper.streamlit.app"
+APP_IMAGE = "lo_mapper.webp"
 
 APP_TITLE = "Learning Objectives Mapper"
 APP_INTRO = """This AI-powered Microapp maps content to learning objectives, so educators can quickly remind themselves where in their content they speak to specific learning objectives. 

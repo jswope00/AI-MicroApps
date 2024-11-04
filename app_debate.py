@@ -1,5 +1,5 @@
 APP_URL = "https://ai-debate-partner.streamlit.app"
-APP_IMAGE = "ai_debate.png"
+APP_IMAGE = "debate_flat.webp"
 PUBLISHED = True
 
 APP_TITLE = "AI Debate Partner"
@@ -64,7 +64,7 @@ PHASES = {
         "user_prompt": "My name is {name}",
         "ai_response": True,
         "scored_phase": True,
-        "minimum_score": 2,
+        "minimum_score": 0,
         "rubric": """
                 1. Name
                     2 points - The user has provided you with a valid first name (e.g. Mike, John, Susan)

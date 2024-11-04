@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://case-study-ebola.streamlit.app"
+APP_IMAGE = "ebola_case_study_flat.webp"
 
 APP_TITLE = "Ebola Virus Ecology and Transmission"
 APP_INTRO = """This is a simple app that assesses the user's understanding of a simple case study. It is for demonstrating the capabilities of a AI MicroApp. 

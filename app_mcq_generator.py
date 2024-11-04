@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://mcq-wizard.streamlit.app"
+APP_IMAGE = "mcq_generator_flat.webp"
 
 APP_TITLE = "MCQ Generator"
 APP_INTRO = """This micro-app allows you to generate multiple-choice questions quickly and consistently. 
