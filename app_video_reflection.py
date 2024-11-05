@@ -66,7 +66,7 @@ PHASES = {
                 0 point - The user did not include any specific details from the video. 
         """,
         "scored_phase": True,
-        "minimum_score": 2,
+        "minimum_score": 3,
     },
     "phase3": {
         "name": "Answer a Factual Question from the Video",
@@ -80,6 +80,13 @@ PHASES = {
         "user_prompt": """{length}. """,
         "ai_response": True,
         "allow_skip": True,
+        "rubric": """
+            1. Questions
+                1 points - The answer is correct
+                0 point - The answer is incorrect.
+        """,
+        "scored_phase": True,
+        "minimum_score": 1,
     },
 }
 
