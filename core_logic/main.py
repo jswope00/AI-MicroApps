@@ -263,6 +263,7 @@ def execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, user
     if handler:
         try:
             result = handler(context)
+            return result
         except Exception as e:
             raise RuntimeError(f"Error in handling the LLM request: {e}")
     else:
@@ -521,12 +522,14 @@ def handle_chat_input(field_key, kwargs, user_input, phase_name, phases, system_
             phase_instructions = phase.get("phase_instructions", "")
             
             # Get AI response
-            ai_response = execute_llm_completions(
+            ai_response, execution_price = execute_llm_completions(
                 system_prompt,
                 selected_llm,
                 phase_instructions, 
                 user_input[field_key]
             )
+            st.session_state['TOTAL_PRICE'] += execution_price
+            
             
             # Display AI response
             with st.chat_message("assistant"):
@@ -559,10 +562,14 @@ def handle_submission(PHASE_NAME, PHASE_DICT, fields, user_input, formatted_user
         if PHASE_DICT.get("scored_phase", False):
             if "rubric" in PHASE_DICT:
                 scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                ai_feedback = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions, formatted_user_prompt, image_urls)
+                ai_feedback, execution_price = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions, formatted_user_prompt, image_urls)
+                st.session_state['TOTAL_PRICE'] += execution_price
                 st.info(body=ai_feedback, icon="🤖")
-                ai_score = execute_llm_completions(SYSTEM_PROMPT, selected_llm, scoring_instructions, ai_feedback)
+                
+                ai_score, score_price = execute_llm_completions(SYSTEM_PROMPT, selected_llm, scoring_instructions, ai_feedback)
+                st.session_state['TOTAL_PRICE'] += score_price
                 st.info(ai_score, icon="🤖")
+                
                 st_store(ai_feedback, PHASE_NAME, "ai_response")
                 st_store(ai_score, PHASE_NAME, "ai_score_debug")
                 score = extract_score(ai_score)
@@ -589,8 +596,10 @@ def handle_submission(PHASE_NAME, PHASE_DICT, fields, user_input, formatted_user
                 st_store("You need to include a rubric for a scored phase", PHASE_NAME, "error_message")
                 return False
         else:
-            ai_feedback = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions, formatted_user_prompt, image_urls)
+            ai_feedback, execution_price = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions, formatted_user_prompt, image_urls)
             st_store(ai_feedback, PHASE_NAME, "ai_response")
+            st.session_state['TOTAL_PRICE'] += execution_price
+            
 
             # Add to chat history
             handle_chat_history(formatted_user_prompt, ai_feedback, phase_instructions, image_urls)
@@ -873,8 +882,9 @@ def main(config):
 
                                 formatted_user_prompt += st.session_state['additional_prompt']
 
-                                ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions,
+                                ai_feedback, execution_price = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions,
                                                                       formatted_user_prompt)
+                                st.session_state['TOTAL_PRICE'] += execution_price
 
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
                                     st.session_state[f"{PHASE_NAME}_revision_count"]))

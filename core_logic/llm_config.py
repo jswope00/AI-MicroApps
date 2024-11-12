@@ -45,8 +45,8 @@ LLM_CONFIG = {
         "frequency_penalty": 0,
         "presence_penalty": 0,
         "supports_image": True,
-        "price_input_token_1M": 5,
-        "price_output_token_1M": 15
+        "price_input_token_1M": 2.5,
+        "price_output_token_1M": 10
     },
     "gemini-1.5-flash": {
         "family": "gemini",
@@ -57,8 +57,8 @@ LLM_CONFIG = {
         "frequency_penalty": 0,
         "presence_penalty": 0,
         "supports_image": False,
-        "price_input_token_1M": 0.35,
-        "price_output_token_1M": 1.05
+        "price_input_token_1M": 0.15,
+        "price_output_token_1M": 0.60
     },
     "gemini-1.5-pro": {
         "family": "gemini",
@@ -69,12 +69,12 @@ LLM_CONFIG = {
         "frequency_penalty": 0,
         "presence_penalty": 0,
         "supports_image": True,
-        "price_input_token_1M": 3.5,
-        "price_output_token_1M": 10.50
+        "price_input_token_1M": 2.5,
+        "price_output_token_1M": 10.00
     },
     "claude-3.5-sonnet": {
         "family": "claude",
-        "model": "claude-3-5-sonnet-20240620",
+        "model": "claude-3-5-sonnet-latest",
         "max_tokens": 1000,
         "temperature": 1.0,
         "top_p": 1.0,
@@ -86,7 +86,7 @@ LLM_CONFIG = {
     },
     "claude-opus": {
         "family": "claude",
-        "model": "claude-3-opus-20240229",
+        "model": "claude-3-opus-latest",
         "max_tokens": 1000,
         "temperature": 1.0,
         "top_p": 1.0,
@@ -96,29 +96,17 @@ LLM_CONFIG = {
         "price_input_token_1M": 15,
         "price_output_token_1M": 75
     },
-    "claude-sonnet": {
+    "claude-3.5-haiku": {
         "family": "claude",
-        "model": "claude-3-sonnet-20240229",
-        "max_tokens": 1000,
-        "temperature": 1.0,
-        "top_p": 1.0,
-        "frequency_penalty": 0,
-        "presence_penalty": 0,
-        "supports_image": True,
-        "price_input_token_1M": 3,
-        "price_output_token_1M": 15
-    },
-    "claude-haiku": {
-        "family": "claude",
-        "model": "claude-3-haiku-20240307",
+        "model": "claude-3-5-haiku-latest",
         "max_tokens": 1000,
         "temperature": 1.0,
         "top_p": 1.0,
         "frequency_penalty": 0,
         "presence_penalty": 0,
         "supports_image": False,
-        "price_input_token_1M": 0.25,
-        "price_output_token_1M": 1.25
+        "price_input_token_1M": 1,
+        "price_output_token_1M": 5
     },
     "llama-3.1-sonar-small-128k-chat": {
         "family": "perplexity",
