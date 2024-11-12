@@ -113,7 +113,7 @@ PHASES = {
                 "prompt": "Distractors should sound like they could be plausible, but are ultimately incorrect. \n\n"
             },
             {
-                "condition": {"learning_objective": ""},
+                "condition": {"learning_objective": {"$ne":""}},
                 "prompt": "Focus on meeting the following learning objective(s): {learning_objective}\n"
             },
             {
@@ -129,8 +129,15 @@ PHASES = {
                 "prompt": "Please write your MCQs in Open edX OLX format\n\n"
             },
             {
-                "condition": {},
-                "prompt": """Format each question in OLX format so that I can upload to Open edX."""
+                "condition": {"output_format": {"$ne":"OLX"}},
+                "prompt": """Format each question like the following:
+            Question: [Question Text] \n
+            A) [Answer A] \n
+            B) [Answer B] \n
+            ....
+            N) [Answer N] \n
+
+            Solution: [Answer A, B...N]\n\n"""
             },
             {
                 "condition": {},
@@ -174,7 +181,7 @@ PAGE_CONFIG = {
     "initial_sidebar_state": "expanded"
 }
 
-SIDEBAR_HIDDEN = True
+SIDEBAR_HIDDEN = False
 
 from core_logic.main import main
 if __name__ == "__main__":
