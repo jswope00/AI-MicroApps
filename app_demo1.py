@@ -141,7 +141,10 @@ PHASES = {
 }
 
 PREFERRED_LLM = "gpt-4o-mini"
-LLM_CONFIG_OVERRIDE = {}
+LLM_CONFIG_OVERRIDE = {
+    "max_tokens": 8000,
+    "temperature": 1.0
+}
 
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True

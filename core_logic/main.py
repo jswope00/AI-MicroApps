@@ -230,7 +230,12 @@ def execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, user
     if selected_llm not in LLM_CONFIG:
         raise ValueError(f"Selected model '{selected_llm}' not found in configuration.")
 
-    model_config = LLM_CONFIG[selected_llm]
+    model_config = LLM_CONFIG[selected_llm].copy()  # Create a copy of the base config
+    
+    # Apply any overrides from the app config
+    if LLM_CONFIG_OVERRIDE:
+        model_config.update(LLM_CONFIG_OVERRIDE)
+    
     family = model_config["family"]
     chat_history = st.session_state["chat_history"]
 
@@ -518,7 +523,7 @@ def handle_chat_input(field_key, kwargs, user_input, phase_name, phases, system_
             # Get AI response
             ai_response = execute_llm_completions(
                 system_prompt,
-                selected_llm, 
+                selected_llm,
                 phase_instructions, 
                 user_input[field_key]
             )
@@ -629,6 +634,8 @@ def main(config):
     COMPLETION_MESSAGE = config.get('COMPLETION_MESSAGE', 'Process completed successfully.')
     COMPLETION_CELEBRATION = config.get('COMPLETION_CELEBRATION', False)
     LLM_CONFIGURATIONS = LLM_CONFIG
+    global LLM_CONFIG_OVERRIDE
+    LLM_CONFIG_OVERRIDE = config.get('LLM_CONFIG_OVERRIDE', {})
     PREFERRED_LLM = config.get('PREFERRED_LLM', 'openai')
     SYSTEM_PROMPT = config.get('SYSTEM_PROMPT', '')
 
@@ -684,7 +691,11 @@ def main(config):
         selected_llm = st.selectbox("Select Language Model", options=LLM_CONFIGURATIONS.keys(), index=llm_index,
                                     key="selected_llm")
 
-        initial_config = LLM_CONFIGURATIONS[selected_llm]
+        initial_config = LLM_CONFIGURATIONS[selected_llm].copy()
+
+        if LLM_CONFIG_OVERRIDE:
+            initial_config.update(LLM_CONFIG_OVERRIDE)
+        
         st.session_state['llm_config'] = {
             "model": initial_config["model"],
             "temperature": st.slider("Temperature", min_value=0.0, max_value=1.0,
