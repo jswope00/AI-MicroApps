@@ -3,6 +3,7 @@ import re
 import base64
 import mimetypes
 import streamlit as st
+from streamlit import _bottom
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
 from core_logic.handlers import HANDLERS
@@ -90,11 +91,13 @@ def evaluate_conditions(user_input, condition):
     return True
 
 # Function to build input fields based on configuration
-def build_field(phase_name, fields,user_input):
+def build_field(phase_name, fields, user_input, phases, system_prompt):
     """
     Builds the input fields for a given phase based on the 'fields' configuration.
     Checks for 'showIf' conditions before displaying fields.
     """
+    
+
     function_map = {
         "text_input": st.text_input,
         "text_area": st.text_area,
@@ -107,7 +110,8 @@ def build_field(phase_name, fields,user_input):
         "slider": st.slider,
         "number_input": st.number_input,
         "image": st.image,
-        "file_uploader": st.file_uploader
+        "file_uploader": st.file_uploader,
+        "chat_input": st.chat_input
     }
 
     for field_key, field in fields.items():
@@ -133,10 +137,12 @@ def build_field(phase_name, fields,user_input):
         field_unsafe_html = field.get("unsafe_allow_html", False)
         field_placeholder = field.get("placeholder", "")
         field_image = field.get("image", "")
+        field_width = field.get("width", None)
         field_caption = field.get("caption", "")
         field_allowed_files = field.get("allowed_files", None)
         field_multiple_files = field.get("multiple_files", False)
         field_label_visibility = field.get("label_visibility", None)
+        field_initial_assistant_message = field.get("initial_assistant_message", "")
 
         kwargs = {}
         if field_label:
@@ -171,6 +177,8 @@ def build_field(phase_name, fields,user_input):
             kwargs['placeholder'] = field_placeholder
         if field_image:
             kwargs['image'] = field_image
+        if field_width:
+            kwargs['width'] = field_width
         if field_caption:
             kwargs['caption'] = field_caption
         if field_allowed_files:
@@ -179,7 +187,8 @@ def build_field(phase_name, fields,user_input):
             kwargs['accept_multiple_files'] = field_multiple_files
         if field_label_visibility:
             kwargs['label_visibility'] = field_label_visibility
-
+        if field_initial_assistant_message:
+            kwargs['initial_assistant_message'] = field_initial_assistant_message
         key = f"{phase_name}_phase_status"
 
         # If the user has already answered this question:
@@ -191,6 +200,11 @@ def build_field(phase_name, fields,user_input):
                 kwargs['disabled'] = True
 
         my_input_function = function_map[field_type]
+
+        #Render a chat input, with chat history if it exists
+        if field_type == "chat_input":
+            handle_chat_input(field_key, kwargs, user_input, phase_name, phases, system_prompt)
+            continue
 
         with stylable_container(
                 key="large_label",
@@ -274,11 +288,38 @@ def format_user_prompt(prompt, user_input, phase_name=None, phases=None):
     """
     Formats the 'prompt' using the provided 'user_input' and applies any conditional logic.
     'phases' is required to access phase-specific data.
+    Special handling for chat_input fields to include entire chat history.
     """
     try:
         prompt = prompt_conditionals(user_input, phase_name, phases)
-        formatted_user_prompt = prompt.format(**{k: user_input.get(k, '') for k in re.findall(r'{(\w+)}', prompt)})
+        
+        # Get field types from phase configuration
+        field_types = {}
+        if phase_name and phases and phase_name in phases:
+            field_types = {
+                field_key: field_config.get('type')
+                for field_key, field_config in phases[phase_name]['fields'].items()
+            }
+        
+        # Create formatting dictionary
+        format_dict = {}
+        for key in re.findall(r'{(\w+)}', prompt):
+            if key in field_types and field_types[key] == 'chat_input':
+                # For chat_input fields, use the entire message history
+                chat_messages = st.session_state.get(f"messages_{key}", [])
+                # Format chat history as a string
+                chat_history = "\n".join([
+                    f"{msg['role']}: {msg['content']}"
+                    for msg in chat_messages
+                ])
+                format_dict[key] = chat_history
+            else:
+                # For other fields, use the regular user input
+                format_dict[key] = user_input.get(key, '')
+        
+        formatted_user_prompt = prompt.format(**format_dict)
         return formatted_user_prompt
+        
     except Exception as e:
         print(f"Error occurred in format_user_prompt: {e}")
         formatted_user_prompt = prompt.format(**user_input)
@@ -369,6 +410,8 @@ def find_image_urls(user_input,fields):
     """
     image_urls = []
     for key, value in fields.items():
+        if 'decorative' in value and value['decorative']:
+            continue
         if 'image' in value:
             image_urls.append(value['image'])
         if 'file_uploader' in value.values():
@@ -385,6 +428,187 @@ def find_image_urls(user_input,fields):
                     image_url = f"data:{mime_type};base64,{base64_encoded_content}"
                     image_urls.append(image_url)
     return image_urls
+
+def handle_chat_history(user_input, ai_response, phase_instructions = None,image_urls = None):
+    """
+    Handles the chat history for a phase, including the assistant instructions.
+    """
+
+    # Create a single chat history entry that includes all information
+    chat_history_entry = {
+        "user": user_input,
+        "assistant": ai_response
+    }
+    
+    # Add phase instructions if provided
+    if phase_instructions:
+        chat_history_entry["assistant_instructions"] = phase_instructions
+    
+    # Add image URLs if provided
+    if image_urls:
+        chat_history_entry["app_images"] = image_urls
+    
+    # Append the single entry to chat history
+    st.session_state['chat_history'].append(chat_history_entry)
+
+def handle_chat_input(field_key, kwargs, user_input, phase_name, phases, system_prompt):
+    """
+    Handles the chat input field type, including message history and LLM interactions.
+    """
+    selected_llm = st.session_state.get("selected_llm", "openai")  # Default to openai if not set
+
+    # Initialize messages for this specific field
+    initial_message = kwargs.pop("initial_assistant_message", "")  # Remove from kwargs
+    if f"messages_{field_key}" not in st.session_state:
+        st.session_state[f"messages_{field_key}"] = [{"role": "assistant", "content": initial_message}]
+
+    # Get max messages from field configuration, default to 20 if not specified
+    phase = phases[phase_name]
+    field_config = phase["fields"][field_key]
+    max_messages = field_config.get("max_messages", 50)
+
+    # Calculate remaining messages (divide by 2 since each exchange counts as 2 messages)
+    current_messages = len(st.session_state[f"messages_{field_key}"]) // 2
+    remaining_messages = max_messages - current_messages
+    st.write(f"Messages remaining: {remaining_messages}/{max_messages}")
+
+    # Display existing messages
+    for message in st.session_state[f"messages_{field_key}"]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # Check if message limit is reached. Multiplied by 2 to account for user and assistant messages.
+    if len(st.session_state[f"messages_{field_key}"]) >= max_messages * 2:
+        st.info(
+            f"""Notice: The maximum message limit ({max_messages} messages) for this conversation has been reached. 
+            Please proceed to the next phase."""
+        )
+        return
+
+    # Check if this phase is completed
+    phase_completed = st.session_state.get(f"{phase_name}_phase_completed", False)
+    
+    # Only render the chat input if the phase isn't completed and message limit isn't reached
+    if not phase_completed and not len(st.session_state[f"messages_{field_key}"]) >= max_messages * 2:
+        
+        user_input[field_key] = st.chat_input(**kwargs)
+        
+        if user_input[field_key]:  # If there's a new message
+            #Clear any old end-of-phase responses. Usually because the user did not pass
+            if f"{phase_name}_ai_response" in st.session_state:
+                del st.session_state[f"{phase_name}_ai_response"]
+            #Clear any old end-of-phase scores. Usually because the user did not pass
+            if f"{phase_name}_ai_score_debug" in st.session_state:
+                del st.session_state[f"{phase_name}_ai_score_debug"]
+            #Clear any old end-of-phase errors. Usually because the user did not pass
+            if f"{phase_name}_error_message" in st.session_state:
+                del st.session_state[f"{phase_name}_error_message"]
+            #Clear any old end-of-phase warnings. Usually because the user did not pass
+            if f"{phase_name}_warning_message" in st.session_state:
+                del st.session_state[f"{phase_name}_warning_message"]
+
+            # Display user message            
+            with st.chat_message("user"):
+                st.markdown(user_input[field_key])
+            st.session_state[f"messages_{field_key}"].append({"role": "user", "content": user_input[field_key]})
+            
+            # Get phase configuration
+            phase_instructions = phase.get("phase_instructions", "")
+            
+            # Get AI response
+            ai_response = execute_llm_completions(
+                system_prompt,
+                selected_llm, 
+                phase_instructions, 
+                user_input[field_key]
+            )
+            
+            # Display AI response
+            with st.chat_message("assistant"):
+                st.markdown(ai_response)
+            st.session_state[f"messages_{field_key}"].append({"role": "assistant", "content": ai_response})
+            
+            # Add to chat history
+            handle_chat_history(user_input[field_key], ai_response, phase_instructions)
+
+            
+            # Check if we've reached the message limit after this exchange
+            #if len(st.session_state[f"messages_{field_key}"]) >= max_messages * 2:
+            #    st.session_state[f"{phase_name}_phase_completed"] = True
+            
+            # Force a rerun to update the chat
+            st.rerun()
+
+def handle_submission(PHASE_NAME, PHASE_DICT, fields, user_input, formatted_user_prompt, selected_llm, SYSTEM_PROMPT, PHASES):
+    """
+    Handles the submission logic for a phase, including AI responses and scoring.
+    Returns True if the phase should advance, False otherwise.
+    """
+    for field_key, field in fields.items():
+        st_store(user_input.get(field_key, ""), PHASE_NAME, "user_input", field_key)
+
+    phase_instructions = PHASE_DICT.get("phase_instructions", "")
+    image_urls = find_image_urls(user_input, PHASE_DICT.get('fields', {}))
+
+    if PHASE_DICT.get("ai_response", True):
+        if PHASE_DICT.get("scored_phase", False):
+            if "rubric" in PHASE_DICT:
+                scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
+                ai_feedback = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions, formatted_user_prompt, image_urls)
+                st.info(body=ai_feedback, icon="🤖")
+                ai_score = execute_llm_completions(SYSTEM_PROMPT, selected_llm, scoring_instructions, ai_feedback)
+                st.info(ai_score, icon="🤖")
+                st_store(ai_feedback, PHASE_NAME, "ai_response")
+                st_store(ai_score, PHASE_NAME, "ai_score_debug")
+                score = extract_score(ai_score)
+                st_store(score, PHASE_NAME, "ai_score")
+
+                # Add to chat history
+                handle_chat_history(formatted_user_prompt, ai_feedback, phase_instructions, image_urls)
+
+                st.session_state["ai_score"] = ai_score
+                st.session_state['score'] = score
+                
+                if check_score(PHASES, PHASE_NAME):
+                    st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+                    st.session_state[f"{PHASE_NAME}_warning_message"] = None
+                    st.session_state[f"{PHASE_NAME}_error_message"] = None
+                    st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+                    return True
+                else:
+                    if f"messages_{field_key}" in st.session_state:
+                        del st.session_state[f"messages_{field_key}"]
+                    st_store("You haven't passed. Please try again.", PHASE_NAME, "warning_message")
+                    return False
+            else:
+                st_store("You need to include a rubric for a scored phase", PHASE_NAME, "error_message")
+                return False
+        else:
+            ai_feedback = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions, formatted_user_prompt, image_urls)
+            st_store(ai_feedback, PHASE_NAME, "ai_response")
+
+            # Add to chat history
+            handle_chat_history(formatted_user_prompt, ai_feedback, phase_instructions, image_urls)
+            
+            st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+            st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+            return True
+    else:
+        res_box = st.info(body="", icon="🤖")
+        result = ""
+        hard_coded_message = PHASE_DICT.get('custom_response', None)
+        hard_coded_message = format_user_prompt(hard_coded_message, user_input, PHASE_NAME, PHASES)
+        for char in hard_coded_message:
+            result += char
+            res_box.info(body=result, icon="🤖")
+        st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
+
+        # Add to chat history
+        handle_chat_history(formatted_user_prompt, hard_coded_message, phase_instructions, image_urls)
+
+        st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
+        st.session_state[f"{PHASE_NAME}_phase_completed"] = True
+        return True
 
 # Main function to run the application
 def main(config):
@@ -485,12 +709,20 @@ def main(config):
         # Display chat history in the sidebar
         st.subheader("Chat History")
         for history in st.session_state['chat_history']:
-            st.markdown(f"**User:** {history['user']}")
-            if 'app_images' in history:
-                for image in history['app_images']:
-                    st.image(image)
-            st.markdown(f"**AI:** {history['assistant']}")
-            st.markdown("---")
+            if 'assistant_instructions' in history:
+                with st.chat_message("assistant_instructions"):
+                    st.write(history['assistant_instructions'])
+
+            with st.chat_message("user"):
+                st.write(history['user'])
+                if 'app_images' in history:
+                    for image in history['app_images']:
+                        st.image(image)
+            
+            with st.chat_message("assistant"):
+                st.write(history['assistant'])
+            
+
 
     # Main content rendering
     if 'CURRENT_PHASE' not in st.session_state:
@@ -515,6 +747,8 @@ def main(config):
     if HTML_BUTTON:
         st.link_button(label=HTML_BUTTON["button_text"], url=HTML_BUTTON["url"])
 
+    
+
     # Phase rendering and logic
     i = 0
     while i <= st.session_state['CURRENT_PHASE']:
@@ -529,7 +763,7 @@ def main(config):
 
         st.write(f"#### Phase {i + 1}: {PHASE_DICT['name']}")
 
-        build_field(PHASE_NAME, fields,user_input)
+        build_field(PHASE_NAME, fields, user_input, PHASES, SYSTEM_PROMPT)
 
         key = f"{PHASE_NAME}_phase_status"
         user_prompt_template = PHASE_DICT.get("user_prompt", "")
@@ -555,12 +789,20 @@ def main(config):
         if key not in st.session_state:
             st.session_state[key] = False
 
+        # Check if current phase has a chat_input field
+        has_chat_input = any(field.get('type') == 'chat_input' 
+                           for field in PHASE_DICT['fields'].values())
+
         if not st.session_state.get(f"{PHASE_NAME}_phase_completed", False):
-            with st.container():
+            # Use bottom container for chat input phases, regular container otherwise
+            container_class = _bottom.container() if has_chat_input else st.container()
+            default_button_label = "End Chat" if has_chat_input else "Submit"
+            with container_class:
                 col1, col2 = st.columns(2)
                 with col1:
-                    submit_button = st.button(label=PHASE_DICT.get("button_label", "Submit"), type="primary",
-                                              key=f"submit {i}")
+                    submit_button = st.button(label=PHASE_DICT.get("button_label", default_button_label), 
+                                            type="primary",
+                                            key=f"submit {i}")
                 with col2:
                     if PHASE_DICT.get("allow_skip", False):
                         skip_button = st.button(label="Skip Question", key=f"skip {i}")
@@ -582,81 +824,17 @@ def main(config):
                     st.info(st.session_state[key], icon="🤖")
                 z += 1
 
+        key = f"{PHASE_NAME}_warning_message"
+        if key in st.session_state and st.session_state[key]:
+            st.warning(st.session_state[key])
+
+        key = f"{PHASE_NAME}_error_message"
+        if key in st.session_state and st.session_state[key]:
+            st.error(st.session_state[key], icon="🚨")
+
         if submit_button:
-            for field_key, field in fields.items():
-                st_store(user_input.get(field_key, ""), PHASE_NAME, "user_input", field_key)
-
-            phase_instructions = PHASE_DICT.get("phase_instructions", "")
-
-            image_urls = find_image_urls(user_input,PHASE_DICT.get('fields', {}))
-
-            if PHASE_DICT.get("ai_response", True):
-                if PHASE_DICT.get("scored_phase", False):
-                    if "rubric" in PHASE_DICT:
-                        scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
-                        ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, formatted_user_prompt,
-                                                              image_urls)
-                        st.info(body=ai_feedback, icon="🤖")
-                        ai_score = execute_llm_completions(SYSTEM_PROMPT,selected_llm, scoring_instructions, ai_feedback)
-                        st.info(ai_score, icon="🤖")
-                        st_store(ai_feedback, PHASE_NAME, "ai_response")
-                        st_store(ai_score, PHASE_NAME, "ai_score_debug")
-                        score = extract_score(ai_score)
-                        st_store(score, PHASE_NAME, "ai_score")
-                        chat_history_entry = {
-                            "user": formatted_user_prompt,
-                            "assistant": ai_feedback
-                        }
-                        if image_urls:
-                            chat_history_entry["app_images"] = image_urls
-
-                        st.session_state['chat_history'].append(chat_history_entry)
-                        st.session_state["ai_score"] = ai_score
-                        st.session_state['score'] = score
-                        if check_score(PHASES,PHASE_NAME):
-                            st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1,
-                                                                    len(PHASES) - 1)
-                            st.session_state[f"{PHASE_NAME}_phase_completed"] = True
-                            st.rerun()
-                        else:
-                            st.warning("You haven't passed. Please try again.")
-                    else:
-                        st.error('You need to include a rubric for a scored phase', icon="🚨")
-                else:
-                    ai_feedback = execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, formatted_user_prompt,
-                                                          image_urls)
-                    st_store(ai_feedback, PHASE_NAME, "ai_response")
-                    chat_history_entry = {
-                        "user": formatted_user_prompt,
-                        "assistant": ai_feedback
-                    }
-                    if image_urls:
-                        chat_history_entry["app_images"] = image_urls
-
-                    st.session_state['chat_history'].append(chat_history_entry)
-                    st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
-                    st.session_state[f"{PHASE_NAME}_phase_completed"] = True
-                    st.rerun()
-            else:
-                res_box = st.info(body="", icon="🤖")
-                result = ""
-                hard_coded_message = PHASE_DICT.get('custom_response', None)
-                hard_coded_message = format_user_prompt(hard_coded_message, user_input, PHASE_NAME,PHASES)
-                for char in hard_coded_message:
-                    result += char
-                    res_box.info(body=result, icon="🤖")
-                st.session_state[f"{PHASE_NAME}_ai_response"] = hard_coded_message
-                chat_history_entry = {
-                    "user": formatted_user_prompt,
-                    "assistant": hard_coded_message
-                }
-                if image_urls:
-                    chat_history_entry["app_images"] = image_urls
-
-                st.session_state['chat_history'].append(chat_history_entry)
-                st.session_state['CURRENT_PHASE'] = min(st.session_state['CURRENT_PHASE'] + 1, len(PHASES) - 1)
-                st.session_state[f"{PHASE_NAME}_phase_completed"] = True
-                st.rerun()
+            handle_submission(PHASE_NAME, PHASE_DICT, fields, user_input, formatted_user_prompt, selected_llm, SYSTEM_PROMPT, PHASES)
+            st.rerun()
 
         if PHASE_DICT.get("allow_revisions", False):
             if f"{PHASE_NAME}_ai_response" in st.session_state:
@@ -689,13 +867,10 @@ def main(config):
 
                                 st_store(ai_feedback, PHASE_NAME, "ai_response_revision_" + str(
                                     st.session_state[f"{PHASE_NAME}_revision_count"]))
-                                chat_history_entry = {
-                                    "user": formatted_user_prompt,
-                                    "assistant": ai_feedback
-                                }
-                                if image_urls:
-                                    chat_history_entry["app_images"] = image_urls
-                                st.session_state['chat_history'].append(chat_history_entry)
+                                
+                                # Add to chat history
+                                handle_chat_history(formatted_user_prompt, ai_feedback, phase_instructions, image_urls) 
+                                
                                 st.rerun()
                         else:
                             st.warning("Revision limits exceeded")

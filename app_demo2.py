@@ -208,7 +208,7 @@ PAGE_CONFIG = {
     "initial_sidebar_state": "expanded"
 }
 
-SIDEBAR_HIDDEN = True
+SIDEBAR_HIDDEN = False
 
 TEMPLATES = {"Demo 2":"config_demo2"}
 
