@@ -84,9 +84,10 @@ def handle_claude(context):
     try:
         client = anthropic.Anthropic(api_key=get_api_key("claude"))
 
+        # Clean up any trailing whitespace in the messages
         messages = format_chat_history(context["chat_history"], "claude") + [
-            {"role": "user", "content": [{"type": "text", "text": context["user_prompt"]}]},
-            {"role": "assistant", "content": [{"type": "text", "text": context["phase_instructions"]}]}
+            {"role": "user", "content": [{"type": "text", "text": context["phase_instructions"].strip()}]},
+            {"role": "user", "content": [{"type": "text", "text": context["user_prompt"].strip()}]},
         ]
 
         if context["supports_image"] and context["image_urls"]:
@@ -131,8 +132,8 @@ def handle_gemini(context):
         genai.configure(api_key=get_api_key("google"))
 
         messages = format_chat_history(context["chat_history"], "gemini") + [
-            {"role": "user", "parts": [context["user_prompt"]]},
-            {"role": "model", "parts": [context["phase_instructions"]]}
+            {"role": "model", "parts": [context["phase_instructions"]]},
+            {"role": "user", "parts": [context["user_prompt"]]}
         ]
 
         if context["supports_image"] and context["image_urls"]:
@@ -146,8 +147,9 @@ def handle_gemini(context):
         chat_session = genai.GenerativeModel(
             model_name=context["model"],
             generation_config= {"temperature": context["temperature"],"top_p": context["top_p"],"max_output_tokens": context["max_tokens"],"response_mime_type":"text/plain"},
-            system_instruction=f"{context['SYSTEM_PROMPT']}"
+            system_instruction=context["SYSTEM_PROMPT"]
         ).start_chat(history=messages)
+
         response = chat_session.send_message(context["user_prompt"])
         return response.text
     except Exception as e:

@@ -49,6 +49,29 @@ PHASES = {
   
     },
     "phase3": {
+        "name": "Chat Area",
+        "fields": {
+            "chat": {
+                "type": "chat_input",
+                "max_messages": 3,
+                "placeholder": "What is your name?",
+                "initial_assistant_message": "Hello, I'm a chatbot with a name. You have to determine my name."
+            }
+        },
+        "allow_skip": True,
+        "ai_response": True,
+        "phase_instructions": "Your name is Bottina. You will tell the user your name if they ask.",
+        "user_prompt": "Please provide feedback on whether or not I discovered that the bot's name is Bottina in this chat: \n\n{chat}",
+        "scored_phase": True,
+        "rubric": """
+        1. Name:
+        2 points - The user determined that the bot's name is Bottina.
+        0 points - The user has NOT determined that the bot's name is Bottina.
+        """,
+        "minimum_score": 0,
+        "show_prompt": False,
+    },
+    "phase4": {
         "name": "Radio Select",
         "fields": {
             "pluto": {
@@ -61,7 +84,7 @@ PHASES = {
         "user_prompt": "{pluto}",
         "allow_skip": True,
     },
-    "phase4": {
+    "phase5": {
         "name": "Dropdown Select",
         "fields": {
             "tech": {
@@ -74,7 +97,7 @@ PHASES = {
         "user_prompt": "{tech}",
         "allow_skip": True,
     },
-    "phase5": {
+    "phase6": {
         "name": "Checkbox",
         "fields": {
             "check_me": {
@@ -87,7 +110,7 @@ PHASES = {
         "custom_response": "Thanks!",
         "allow_skip": True,
     },
-    "phase6": {
+    "phase7": {
         "name": "age",
         "fields": {
             "age": {
@@ -101,7 +124,7 @@ PHASES = {
         "user_prompt": "{age}",
         "allow_skip": True,
     },
-    "phase7": {
+    "phase8": {
         "name": "mars",
         "fields": {
             "mars": {
