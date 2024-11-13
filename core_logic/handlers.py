@@ -68,8 +68,8 @@ def handle_openai(context):
             frequency_penalty=context["frequency_penalty"],
             presence_penalty=context["presence_penalty"]
         )
-        input_price = int(getattr(response.usage, 'input_tokens', 0)) * context["price_input_token_1M"] / 1000000
-        output_price = int(getattr(response.usage, 'output_tokens', 0)) * context["price_output_token_1M"] / 1000000
+        input_price = int(getattr(response.usage, 'prompt_tokens', 0)) * context["price_input_token_1M"] / 1000000
+        output_price = int(getattr(response.usage, 'completion_tokens', 0)) * context["price_output_token_1M"] / 1000000
         execution_price = input_price + output_price
         return response.choices[0].message.content, execution_price
     except Exception as e:
@@ -119,8 +119,6 @@ def handle_claude(context):
         execution_price = input_price + output_price
         
         response_text = '\n'.join([block.text for block in response.content if block.type == 'text'])
-        print ("Execution Price: " + str(execution_price))
-        print ("Response Text: " + str(response_text))
         return response_text, execution_price
     except Exception as e:
         execution_price = 0
