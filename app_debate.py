@@ -64,7 +64,7 @@ PHASES = {
         "user_prompt": "My name is {name}",
         "ai_response": True,
         "scored_phase": True,
-        "minimum_score": 0,
+        "minimum_score": 2,
         "rubric": """
                 1. Name
                     2 points - The user has provided you with a valid first name (e.g. Mike, John, Susan)
