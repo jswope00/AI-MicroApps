@@ -297,10 +297,11 @@ def format_user_prompt(prompt, user_input, phase_name=None, phases=None):
     Special handling for chat_input fields to include entire chat history.
     """
     try:
+        format_dict = {}
+        field_types = {}
         prompt = prompt_conditionals(user_input, phase_name, phases)
         
         # Get field types from phase configuration
-        field_types = {}
         if phase_name and phases and phase_name in phases:
             field_types = {
                 field_key: field_config.get('type')
@@ -308,7 +309,6 @@ def format_user_prompt(prompt, user_input, phase_name=None, phases=None):
             }
         
         # Create formatting dictionary
-        format_dict = {}
         for key in re.findall(r'{(\w+)}', prompt):
             if key in field_types and field_types[key] == 'chat_input':
                 # For chat_input fields, use the entire message history
@@ -321,15 +321,21 @@ def format_user_prompt(prompt, user_input, phase_name=None, phases=None):
                 format_dict[key] = chat_history
             else:
                 # For other fields, use the regular user input
-                format_dict[key] = user_input.get(key, '')
+                format_dict[key] = user_input.get(key, '') or ''
         
         formatted_user_prompt = prompt.format(**format_dict)
         return formatted_user_prompt
         
+    except KeyError as e:
+        print(f"KeyError in format_user_prompt: Missing key {e}")
+        print("Prompt:", prompt)
+        print("User input:", user_input)
+        print("Format dict:", format_dict)
+        return prompt  # Return unformatted prompt to avoid crashing
+    
     except Exception as e:
         print(f"Error occurred in format_user_prompt: {e}")
-        formatted_user_prompt = prompt.format(**user_input)
-        return formatted_user_prompt
+        return prompt  # As a fallback, return the unformatted prompt
 
 
 # Function to store session state data
@@ -561,15 +567,18 @@ def handle_submission(PHASE_NAME, PHASE_DICT, fields, user_input, formatted_user
     if PHASE_DICT.get("ai_response", True):
         if PHASE_DICT.get("scored_phase", False):
             if "rubric" in PHASE_DICT:
-                scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
+                # First, provide feedback on the user's response
                 ai_feedback, execution_price = execute_llm_completions(SYSTEM_PROMPT, selected_llm, phase_instructions, formatted_user_prompt, image_urls)
                 st.session_state['TOTAL_PRICE'] += execution_price
                 st.info(body=ai_feedback, icon="🤖")
                 
-                ai_score, score_price = execute_llm_completions(SYSTEM_PROMPT, selected_llm, scoring_instructions, ai_feedback)
+                # Second, provide a score based on the rubric
+                scoring_instructions = build_scoring_instructions(PHASE_DICT["rubric"])
+                ai_score, score_price = execute_llm_completions("You review the previous conversation and provide a score based on a rubric. You always provide your output in JSON format.", selected_llm, scoring_instructions, formatted_user_prompt)
                 st.session_state['TOTAL_PRICE'] += score_price
                 st.info(ai_score, icon="🤖")
                 
+                # Store the feedback and score
                 st_store(ai_feedback, PHASE_NAME, "ai_response")
                 st_store(ai_score, PHASE_NAME, "ai_score_debug")
                 score = extract_score(ai_score)
