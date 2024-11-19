@@ -1,51 +1,16 @@
-import copy
 import re
 import base64
 import mimetypes
+import os
 import streamlit as st
 from streamlit import _bottom
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
 from core_logic.handlers import HANDLERS
 from core_logic.llm_config import LLM_CONFIG
-
-# Folder where config files are stored
-CONFIG_FOLDER = "config_files"
-
-# Apply master page configuration
-def apply_page_config():
-    PAGE_CONFIG = config.get('PAGE_CONFIG', {})
-    st.set_page_config(
-        page_title=PAGE_CONFIG.get("page_title", "AI MicroApps"),
-        page_icon=PAGE_CONFIG.get("page_icon", "🤖"),
-        layout=PAGE_CONFIG.get("layout", "wide"),
-        initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
-    )
-
-# Optionally hide the sidebar
-def hide_sidebar():
-    SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', True)
-    if SIDEBAR_HIDDEN:
-        hide_sidebar_style = """
-            <style>
-                [data-testid="stSidebar"] {display: none;}
-                [data-testid="stSidebarCollapsedControl"] {display: none;}
-            </style>
-        """
-        st.markdown(hide_sidebar_style, unsafe_allow_html=True)
-
-# Function to merge configuration dictionaries
-def merge_configurations(defaults, overrides):
-    """
-    Merges two dictionaries, with 'overrides' taking precedence over 'defaults'.
-    """
-    merged = copy.deepcopy(defaults)
-    for key, override_values in overrides.items():
-        if key in merged:
-            merged[key].update(override_values)
-        else:
-            merged[key] = override_values
-    return merged
+from core_logic.data_storage import get_runs_data, post_runs_data
+from datetime import datetime
+import pandas as pd
 
 # Function to evaluate conditional logic
 def evaluate_conditions(user_input, condition):
@@ -263,12 +228,84 @@ def execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, user
     if handler:
         try:
             result = handler(context)
+            store_llm_completions(context, result)  
             return result
         except Exception as e:
             raise RuntimeError(f"Error in handling the LLM request: {e}")
     else:
         raise NotImplementedError(f"No handler implemented for model family '{family}'")
     return result
+
+
+def store_llm_completions(context, result):
+    """
+    Stores LLM completion data in the runs database with error handling.
+    If no GSHEETS_URL is configured, silently skips storage.
+    
+    Args:
+        context (dict): The context containing phase instructions and other metadata
+        result (tuple): Tuple containing (response, execution_price)
+        app_title (str): The title of the current application
+    """
+    try:
+        # Get gsheets configuration
+        gsheets_url = GSHEETS_URL_OVERRIDE if GSHEETS_URL_OVERRIDE else os.getenv('GSHEETS_URL')
+        
+        # If no URL is configured, silently return
+        if not gsheets_url:
+            return None
+
+        # Get worksheet configuration
+        gsheets_worksheet = GSHEETS_WORKSHEET_OVERRIDE if GSHEETS_WORKSHEET_OVERRIDE else os.getenv('GSHEETS_WORKSHEET', 'Sheet1')
+
+        runs = get_runs_data(gsheets_url, gsheets_worksheet)
+        
+        # Validate result tuple
+        if not isinstance(result, tuple) or len(result) != 2:
+            raise ValueError("Result must be a tuple of (response, execution_price)")
+            
+        response, execution_price = result
+        
+        # Validate required context fields
+        required_fields = ['phase_instructions', 'user_prompt', 'model']
+        missing_fields = [field for field in required_fields if field not in context]
+        if missing_fields:
+            raise KeyError(f"Missing required context fields: {', '.join(missing_fields)}")
+        
+        # Create new row with validation
+        new_row = pd.DataFrame({
+            'timestamp': [datetime.now()],
+            'APP_TITLE': [APP_TITLE],
+            'Phase Instructions': [str(context['phase_instructions'])],  # Convert to string to handle non-string inputs
+            'User Prompt': [str(context['user_prompt'])],
+            'LLM Response': [str(response)],
+            'Run Cost': [float(execution_price)],  # Ensure numeric
+            'model': [str(context['model'])],
+        })
+        
+        # Perform the concatenation
+        try:
+            runs = pd.concat([runs, new_row], ignore_index=False)
+        except Exception as e:
+            raise ValueError(f"Failed to concatenate new row with existing data: {str(e)}")
+            
+        # Post the updated data
+        try:
+            runs = post_runs_data(runs, gsheets_url, gsheets_worksheet)
+        except Exception as e:
+            raise RuntimeError(f"Failed to post runs data: {str(e)}")
+            
+        return runs
+        
+    except (ValueError, KeyError) as e:
+        st.error(f"Validation error in store_llm_completions: {str(e)}")
+        print(f"Validation error in store_llm_completions: {str(e)}")  # For logging
+        return None
+        
+    except Exception as e:
+        st.error(f"Unexpected error in store_llm_completions: {str(e)}")
+        print(f"Unexpected error in store_llm_completions: {str(e)}")  # For logging
+        return None
 
 # Function to apply conditional logic to prompts
 def prompt_conditionals(user_input, phase_name=None, phases=None):
@@ -643,6 +680,7 @@ def main(config):
     PAGE_CONFIG = config.get('PAGE_CONFIG',{})
     SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', True)
     DISPLAY_COST = config.get('DISPLAY_COST', False)
+    global APP_TITLE
     APP_TITLE = config.get('APP_TITLE',"Default Title")
     APP_INTRO = config.get('APP_INTRO', "")
     APP_HOW_IT_WORKS = config.get('APP_HOW_IT_WORKS',"")
@@ -654,6 +692,10 @@ def main(config):
     LLM_CONFIGURATIONS = LLM_CONFIG
     global LLM_CONFIG_OVERRIDE
     LLM_CONFIG_OVERRIDE = config.get('LLM_CONFIG_OVERRIDE', {})
+    global GSHEETS_URL_OVERRIDE
+    GSHEETS_URL_OVERRIDE = config.get('GSHEETS_URL_OVERRIDE', None)
+    global GSHEETS_WORKSHEET_OVERRIDE
+    GSHEETS_WORKSHEET_OVERRIDE = config.get('GSHEETS_WORKSHEET_OVERRIDE', "Sheet1")
     PREFERRED_LLM = config.get('PREFERRED_LLM', 'openai')
     SYSTEM_PROMPT = config.get('SYSTEM_PROMPT', '')
 
@@ -750,7 +792,7 @@ def main(config):
             
             with st.chat_message("assistant"):
                 st.write(history['assistant'])
-            
+    
 
 
     # Main content rendering
