@@ -8,7 +8,7 @@ from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.let_it_rain import rain
 from core_logic.handlers import HANDLERS
 from core_logic.llm_config import LLM_CONFIG
-from core_logic.data_storage import get_runs_data, post_runs_data
+from core_logic.data_storage import StorageManager
 from datetime import datetime
 import pandas as pd
 
@@ -239,26 +239,11 @@ def execute_llm_completions(SYSTEM_PROMPT,selected_llm, phase_instructions, user
 
 def store_llm_completions(context, result):
     """
-    Stores LLM completion data in the runs database with error handling.
-    If no GSHEETS_URL is configured, silently skips storage.
-    
-    Args:
-        context (dict): The context containing phase instructions and other metadata
-        result (tuple): Tuple containing (response, execution_price)
-        app_title (str): The title of the current application
+    Stores LLM completion data in configured storage with error handling.
     """
     try:
-        # Get gsheets configuration
-        gsheets_url = GSHEETS_URL_OVERRIDE if GSHEETS_URL_OVERRIDE else os.getenv('GSHEETS_URL')
-        
-        # If no URL is configured, silently return
-        if not gsheets_url:
-            return None
-
-        # Get worksheet configuration
-        gsheets_worksheet = GSHEETS_WORKSHEET_OVERRIDE if GSHEETS_WORKSHEET_OVERRIDE else os.getenv('GSHEETS_WORKSHEET', 'Sheet1')
-
-        runs = get_runs_data(gsheets_url, gsheets_worksheet)
+        # Get the existing storage instance
+        storage = StorageManager.get_storage()
         
         # Validate result tuple
         if not isinstance(result, tuple) or len(result) != 2:
@@ -276,35 +261,20 @@ def store_llm_completions(context, result):
         new_row = pd.DataFrame({
             'timestamp': [datetime.now()],
             'APP_TITLE': [APP_TITLE],
-            'Phase Instructions': [str(context['phase_instructions'])],  # Convert to string to handle non-string inputs
+            'Phase Instructions': [str(context['phase_instructions'])],
             'User Prompt': [str(context['user_prompt'])],
             'LLM Response': [str(response)],
-            'Run Cost': [float(execution_price)],  # Ensure numeric
+            'Run Cost': [float(execution_price)],
             'model': [str(context['model'])],
         })
-        
-        # Perform the concatenation
-        try:
-            runs = pd.concat([runs, new_row], ignore_index=False)
-        except Exception as e:
-            raise ValueError(f"Failed to concatenate new row with existing data: {str(e)}")
             
-        # Post the updated data
-        try:
-            runs = post_runs_data(runs, gsheets_url, gsheets_worksheet)
-        except Exception as e:
-            raise RuntimeError(f"Failed to post runs data: {str(e)}")
-            
-        return runs
+        storage.post_runs_data(new_row)
         
-    except (ValueError, KeyError) as e:
-        st.error(f"Validation error in store_llm_completions: {str(e)}")
-        print(f"Validation error in store_llm_completions: {str(e)}")  # For logging
-        return None
+        return True
         
     except Exception as e:
-        st.error(f"Unexpected error in store_llm_completions: {str(e)}")
-        print(f"Unexpected error in store_llm_completions: {str(e)}")  # For logging
+        st.error(f"Error in store_llm_completions: {str(e)}")
+        print(f"Error in store_llm_completions: {str(e)}")  # For logging
         return None
 
 # Function to apply conditional logic to prompts
@@ -676,6 +646,9 @@ def main(config):
     The main entry point for the Streamlit application. Handles page setup, form generation,
     prompt processing, and interaction with LLM for responses.
     """
+
+
+
     # Dynamically get configurations from globals
     PAGE_CONFIG = config.get('PAGE_CONFIG',{})
     SIDEBAR_HIDDEN = config.get('SIDEBAR_HIDDEN', True)
@@ -707,6 +680,10 @@ def main(config):
             layout=PAGE_CONFIG.get("layout", "wide"),
             initial_sidebar_state=PAGE_CONFIG.get("initial_sidebar_state", "collapsed")
         )
+
+    # Initialize storage once
+    StorageManager.initialize(config)
+
 
     # Optionally hide the sidebar
     if SIDEBAR_HIDDEN:

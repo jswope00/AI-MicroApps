@@ -1,7 +1,9 @@
 openai
 streamlit
 streamlit_extras
+st-gsheets-connection
 python-dotenv
+pandasql
 anthropic
 google-generativeai
 dnspython==2.6.1
@@ -12,3 +14,4 @@ langchain-mongodb==0.1.8
 langchain==0.2.16
 langchain-community==0.2.16
 pypdf
+SQLAlchemy

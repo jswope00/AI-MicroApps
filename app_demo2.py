@@ -210,6 +210,11 @@ PAGE_CONFIG = {
 
 SIDEBAR_HIDDEN = False
 
+USE_SQL = False
+USE_GSHEETS = True
+GSHEETS_URL_OVERRIDE = "https://docs.google.com/spreadsheets/d/1h_YzpaSmUiHYbP6aRyH10xuWvE9sMFL7WugmDvp9UDY/edit?gid=0#gid=0"
+GSHEETS_WORKSHEET_OVERRIDE = "Demo2"
+
 TEMPLATES = {"Demo 2":"config_demo2"}
 
 from core_logic.main import main
