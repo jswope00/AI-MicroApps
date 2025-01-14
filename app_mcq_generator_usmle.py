@@ -39,11 +39,6 @@ PHASES = {
                 "type": "checkbox",
                 "label": "Focus only on the provided text",
             },
-            "question_type": {
-                "type": "selectbox",
-                "label": "Question Type (optional)",
-                "options": ["Diagnosis", "Treatment", "Mechanism", "Epidemiology", "Pathophysiology", "Biostatistics"],
-            },
             "learning_objective": {
                 "type": "text_area",
                 "label": "Specify a learning objective (optional):",
@@ -87,10 +82,6 @@ PHASES = {
             {
             "condition": {},
             "prompt": "I want you to act as an expert medical educator specializing in writing high-quality clinical vignette-style questions for the USMLE Step exams. Please create {questions_num} {question_level} multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, following these specifications:\n"
-            },
-            {
-                "condition": {"question_type": {"$ne":""}},
-                "prompt": "Please create questions based on the following question type: {question_type}\n\n"
             },
             {
                 "condition": {"original_content_only": True},
