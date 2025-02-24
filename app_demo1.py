@@ -164,6 +164,11 @@ PAGE_CONFIG = {
 
 SIDEBAR_HIDDEN = False
 
+USE_SQL = True
+USE_GSHEETS = True
+GSHEETS_URL_OVERRIDE = "https://docs.google.com/spreadsheets/d/1TGCZfdbBUbegi2Gi91_VmtazkpZGOS2g16qquX6pLp0/edit?gid=0#gid=0"
+GSHEETS_WORKSHEET_OVERRIDE = "Sheet1"
+
 from core_logic.main import main
 if __name__ == "__main__":
     main(config=globals())
