@@ -28,6 +28,21 @@ PHASES = {
     "phase1": {
         "name": "Configure Questions",
         "fields": {
+            "topic": {
+                "type": "text_input",
+                "label": "Enter the topic for question generation:"
+            },
+            "learning_objective": {
+                "type": "text_area",
+                "label": "Specify an ILO (optional):",
+                "max_chars": 1000
+            },
+            "question_type": {
+                "type": "radio",
+                "label": "Question Type",
+                "options": ["Pre-Work", "Formative", "Summative"],
+                "index": 0,
+            },
             "topic_content": {
                 "type": "text_area",
                 "label": "Enter the content for question generation:",
@@ -37,18 +52,19 @@ PHASES = {
             "question_style": {
                 "type": "selectbox",
                 "label": "Question Type",
-                "options": ["Standard", "NAVLE"],
+                "options": ["NAVLE", "Standard" ],
                 "index": 0,
-            },
-            "learning_objective": {
-                "type": "text_area",
-                "label": "Specify a learning objective (optional):",
-                "max_chars": 1000
             },
             "questions_num": {
                 "label": "Number of questions:",
                 "type": "selectbox",
                 "options": [1, 2, 3, 4, 5],
+            },
+            "student_level": {
+                "label": "Student level:",
+                "type": "selectbox",
+                "options": ['Pre-Clinical', 'Clinical'],
+                "index": 0,
             },
             "question_level": {
                 "label": "Question difficulty level:",
@@ -67,14 +83,16 @@ PHASES = {
                 "type": "selectbox",
                 "options": ['Any', 'Knowledge', 'Comprehension', 'Application', 'Analysis', 'Synthesis', 'Evaluation'],
             },
-            "learner_feedback": {
-                "type": "checkbox",
-                "label": "Include Learner Feedback?",
-                "value": True,
+            "relevance": {
+                "label": "Relevance:",
+                "type": "radio",
+                "options": ['Essential', 'Important', 'Nice to know'],
             },
-            "hints": {
-                "type": "checkbox",
-                "label": "Include hints?",
+            "additional_instructions": {
+                "type": "text_area",
+                "label": "Enter any additional instructions or customizations:",
+                "max_chars": 1000,
+                "height": 200,
             }
 
         },
@@ -82,7 +100,7 @@ PHASES = {
         "user_prompt": [
             {
             "condition": {},
-            "prompt": """You are an expert veterinary educator tasked with creating high-quality multiple-choice questions (MCQs) for veterinary school students. Your questions should be clear, challenging, and educational. Use clinical language and terminology appropriate for veterinary students.
+            "prompt": """You are an expert veterinary educator tasked with creating high-quality multiple-choice questions (MCQs) for veterinary school students. Your questions should be clear, challenging, and educational. Use clinical language and terminology appropriate for {student_level} veterinary students.
             Please create {questions_num} {question_level} multiple-choice question(s), each with {correct_ans_num} correct answer(s) and {distractors_num} distractors, following these specifications:\n
             """
             },
@@ -96,20 +114,17 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "Distractors should be based on common misconceptions or related conditions.\n\n"
+                "prompt": "Distractors should be based on common misconceptions or related conditions. All distractors should be within 1 or 2 words of the same length. \n\n"
             },
             {
                 "condition": {"learning_objective": {"$ne":""}},
                 "prompt": "Focus on meeting the following learning objective(s): {learning_objective}\n"
             },
             {
-                "condition": {"learner_feedback": True},
-                "prompt": "Please provide a feedback section where you Clearly identify the correct answer, Provide a detailed explanation for why the correct answer is correct, and Briefly explain why each distractor is incorrect or less likely. \n\n"
+                "condition": {},
+                "prompt": "Please provide a feedback & rationale section where you clearly identify the correct answer, Provide a detailed explanation for why the correct answer is correct, and Briefly explain why each distractor is incorrect or less likely. \n\n"
             },
-            {
-                "condition": {"hints": True},
-                "prompt": "Also, include a hint for each question.\n\n"
-            },
+
             {
                 "condition": {"question_style": "Standard"},
                 "prompt": """Format each question like the following:
@@ -140,10 +155,40 @@ PHASES = {
 """
             },
             {
+                "condition": {"additional_instructions": {"$ne":""}},
+                "prompt": "Additionally, follow these additional instructions: {additional_instructions}\n"
+            },
+            {
                 "condition": {},
                 "prompt": """Here is the content/topic:\n
                 ================
+                topic: {topic}
                 {topic_content}"""
+            },
+            {
+                "condition": {},
+                "prompt": """I'm going to copy and paste your response into a strictly formatted templated, so please format your response as follows. If I have left a value blank, then please leave it blank. 
+                
+                **Topic**: {topic}
+                **ILO**: {learning_objective}
+                **Question Type**: {question_type}
+                **Bloom's Taxonomy Level**: {knowledge_level}
+                **Difficulty Level**: {question_level}
+                **Relevance**: {relevance}
+
+                **Question Stem**
+                [Write the question stem here]
+
+                **Answer Options**
+                [Write the answer options here]
+
+                **Correct Answer**
+                [Write the correct answer here]
+
+                **Feedback & Rationale**
+                [Write the explanation here]
+                """
+
             }
         ],
         "ai_response": True,
