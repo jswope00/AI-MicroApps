@@ -53,7 +53,16 @@ PHASES = {
                 "label": "List at least three details from this first call with Mrs. Charles that are important to note.",
             }
         },
-        "user_prompt": "Provide me feedback on whether or not I've picked up on three distinct, and clinically relevant details from the following conversation:&nbsp;<br>On a hot, dry March morning, Mrs. Charles called the clinic you are currently working at about Champ. Champ is a young Pothound that Mrs. Charles has owned since he was a puppy. She says that Champ has not been barking as he usually does and has not been as active. She will like some guidance about why he is not acting like himself. As you have a time slot available this morning and Mrs. Charles lives close, she accepts to bring Champ on her way to work.&nbsp;<br><br>Possible relevant details would be thinks like:&nbsp;<br>- It is hot<div>- It is dry</div><div>- Dog is barking less</div><div>- Dog is less active</div><div><br></div><div>Irelevant details might be:&nbsp;</div><div>- Mrs. Charles lives close by.&nbsp;</div><div>- Mrs. Charles has owned Champ since he was a puppy.&nbsp;</div><div><br></div><div>If I don't provide the details, then don't give me the answer. Just provide the feedback on the items I provide and whether I've picked up on three details. Here is what I observed: {important_details}.",
+        "user_prompt": """
+Provide me feedback on whether or not I've picked up on at least three distinct and clinically relevant details from the following conversation: 
+=============
+On a hot, dry March morning, Mrs. Charles called the clinic you are currently working at about Champ. Champ is a young Pothound that Mrs. Charles 
+has owned since he was a puppy. She says that Champ has not been barking as he usually does and has not been as active. 
+She will like some guidance about why he is not acting like himself. As you have a time slot available this morning and Mrs. 
+Charles lives close, she accepts to bring Champ on her way to work.
+========================
+Provide feedback on whether I've picked up on both environmental and clinical factors that are important to note. 
+Here is what I observed: {important_details}.""",
         "ai_response": True,
         "allow_skip": True,
         #"scored_phase": True,
@@ -90,14 +99,15 @@ PHASES = {
                             <li>Reduced Barking</li>
                             <li>Reduced Activity</li>
                             <li>Not being Himself</li>
-                        </ul>""",
+                        </ul>
+                        <p>Now, you will have a conversation with Mrs. Charles to gather more information about Champ's condition.</p>""",
                 "unsafe_allow_html": True,
             },
             "chat_with_mrs_charles": {
                 "type": "chat_input",
                 "max_messages": 20,
-                "placeholder": "How can I assist with Champ today?",
-                "initial_assistant_message": "Thanks for seeing Champ, doctor. I've only got a few minutes before I've got to head to work. How can I help?"
+                "placeholder": "[Write your first message to Mrs. Charles...]",
+                "initial_assistant_message": "Thanks for seeing Champ, doctor. I've only got a few minutes before I've got to head to work, do you know what is wrong with him?"
             }
         },
         "phase_instructions": """For this chat, you play the role of a 65-year-old woman, Mrs. Charles, living in Grenada. You have brought your dog Champ into the vet clinic.
@@ -133,38 +143,7 @@ PHASES = {
                 "height": 200,
             }
         },
-        "phase_instructions": """I will provide two new relevant problems gathered from the case. I should list NEW problems that I did not provide in the initial phone call. If I include issues I brought up in the initial phone call. Don't give me credit. 
-
-Some options for relevant and irrelevant issues: 
-### Highly Relevant Issues:
-He gets water every so often: yes, this is a clear husbandry problem, it can go into the table or be noted as a clue to help us prioritize our differential diagnosis. 
-Not acting like himself: yes, this is a problem
-He eats but not all the food: yes, this is a problem as it is unusual for him
-Has not been as active: yes, this is a problem
-Has not been barking: yes, this is a problem as the owner reported this is not normal for Champ. 
-### Possibly Relevant issues
-- A hot, dry morning: this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis. 
-- Brought on a hash once a month: this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis. 
-- Allowed to roam loose in the neighbourhood every few days: this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis. 
-- He also gets any kitchen scraps: although not ideal, this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis. 
-### Irrellevant Details
-- Bravecto every 3 months & Advantage multi once a month: this seems acceptable. 
-- Recently graduated veterinarian: not a problem 
-""",
         "user_prompt": """Provide me feedback on whether or not I've picked up on two new distinct, and clinically relevant details from the interaction so far.  I should list NEW problems that I did not provide in the initial phone call. If I include issues I brought up in the initial phone call. Don't give me credit. 
-
-### Highly Relevant Issues:
-He gets water every so often: yes, this is a clear husbandry problem, it can go into the table or be noted as a clue to help us prioritize our differential diagnosis. 
-Not acting like himself: yes, this is a problem
-He eats but not all the food: yes, this is a problem as it is unusual for him
-Has not been as active: yes, this is a problem
-Has not been barking: yes, this is a problem as the owner reported this is not normal for Champ. 
-
-### Possibly Relevant issues
-- A hot, dry morning: this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis. 
-- Brought on a hash once a month: this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis. 
-- Allowed to roam loose in the neighbourhood every few days: this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis. 
-- He also gets any kitchen scraps: although not ideal, this is not a problem per se, but could be a clue/detail that may help us prioritize our differential diagnosis.
 
 If I don't provide the details, then don't give me the answer. Just provide the feedback on the items I provide and whether I've picked up on two details. 
 
