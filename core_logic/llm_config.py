@@ -48,9 +48,9 @@ LLM_CONFIG = {
         "price_input_token_1M": 2.5,
         "price_output_token_1M": 10
     },
-    "gemini-1.5-flash": {
+    "gemini-2.0-flash-lite": {
         "family": "gemini",
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.0-flash-lite",
         "max_tokens": 1000,
         "temperature": 1.0,
         "top_p": 0.95,
@@ -60,9 +60,9 @@ LLM_CONFIG = {
         "price_input_token_1M": 0.15,
         "price_output_token_1M": 0.60
     },
-    "gemini-1.5-pro": {
+    "gemini-2.0-flash": {
         "family": "gemini",
-        "model": "gemini-1.5-pro",
+        "model": "gemini-2.0-flash",
         "max_tokens": 1000,
         "temperature": 1.0,
         "top_p": 0.95,
