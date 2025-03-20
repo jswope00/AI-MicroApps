@@ -172,7 +172,7 @@ def build_field(phase_name, fields, user_input, phases, system_prompt):
             continue
 
         with stylable_container(
-                key="large_label",
+                key=f"st_label_{phase_name}_{field_key}_{id(field)}",
                 css_styles="""
                     label p {
                         font-weight: bold;
