@@ -4,8 +4,9 @@ import streamlit as st
 
 # Path to the current directory (where the apps are located)
 CURRENT_DIR = os.path.dirname(__file__)
+print("Current directory:", CURRENT_DIR)
 APP_IMAGES_DIR = os.path.join(CURRENT_DIR, "app_images")  # Folder where app images are stored
-
+print("App images directory:", APP_IMAGES_DIR)
 def get_app_metadata(app_file):
     """Dynamically import each app file and extract its metadata."""
     module_name = os.path.splitext(app_file)[0]
@@ -116,6 +117,7 @@ def main():
     # Scan for all app files (starting with 'app_' and ending in '.py')
     apps_metadata = []
     for app_file in os.listdir(CURRENT_DIR):
+        print("App file:", app_file)
         if app_file.startswith("app_") and app_file.endswith(".py"):
             metadata = get_app_metadata(app_file)
             apps_metadata.append(metadata)
