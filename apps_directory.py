@@ -4,14 +4,8 @@ import streamlit as st
 
 # More robust directory detection
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-print(f"Absolute Current directory: {CURRENT_DIR}")
-print(f"Directory contents: {os.listdir(CURRENT_DIR)}")
-print(f"Working directory: {os.getcwd()}")
-print(f"Script location: {__file__}")
 
 APP_IMAGES_DIR = os.path.join(CURRENT_DIR, "app_images")
-print(f"App images directory: {APP_IMAGES_DIR}")
-print(f"App images directory exists: {os.path.exists(APP_IMAGES_DIR)}")
 
 def get_app_metadata(app_file):
     """Dynamically import each app file and extract its metadata."""
