@@ -2,3 +2,8 @@
 /venv
 .DS_Store
 .idea/
+.json_key.json
+secrets.toml
+__pycache__/
+*.pyc
+*.db

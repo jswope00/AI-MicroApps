@@ -68,11 +68,10 @@ def handle_openai(context):
             frequency_penalty=context["frequency_penalty"],
             presence_penalty=context["presence_penalty"]
         )
-        input_price = int(response.usage.prompt_tokens) * context["price_input_token_1M"] / 1000000
-        output_price = int(response.usage.completion_tokens) * context["price_output_token_1M"] / 1000000
-        total_price = input_price + output_price
-        context['TOTAL_PRICE'] += total_price
-        return response.choices[0].message.content
+        input_price = int(getattr(response.usage, 'prompt_tokens', 0)) * context["price_input_token_1M"] / 1000000
+        output_price = int(getattr(response.usage, 'completion_tokens', 0)) * context["price_output_token_1M"] / 1000000
+        execution_price = input_price + output_price
+        return response.choices[0].message.content, execution_price
     except Exception as e:
         return f"Unexpected error while handling OpenAI request: {e}"
 
@@ -84,9 +83,10 @@ def handle_claude(context):
     try:
         client = anthropic.Anthropic(api_key=get_api_key("claude"))
 
+        # Clean up any trailing whitespace in the messages
         messages = format_chat_history(context["chat_history"], "claude") + [
-            {"role": "user", "content": [{"type": "text", "text": context["user_prompt"]}]},
-            {"role": "assistant", "content": [{"type": "text", "text": context["phase_instructions"]}]}
+            {"role": "user", "content": [{"type": "text", "text": context["phase_instructions"].strip()}]},
+            {"role": "user", "content": [{"type": "text", "text": context["user_prompt"].strip()}]},
         ]
 
         if context["supports_image"] and context["image_urls"]:
@@ -114,13 +114,15 @@ def handle_claude(context):
             system=f"{context['SYSTEM_PROMPT']}",
             messages=messages
         )
-        input_price = int(response.usage.input_tokens) * context["price_input_token_1M"] / 1000000
-        output_price = int(response.usage.output_tokens) * context["price_output_token_1M"] / 1000000
-        total_price = input_price + output_price
-        context['TOTAL_PRICE'] += total_price
-        return '\n'.join([block.text for block in response.content if block.type == 'text'])
+        input_price = int(getattr(response.usage, 'input_tokens', 0)) * context["price_input_token_1M"] / 1000000
+        output_price = int(getattr(response.usage, 'output_tokens', 0)) * context["price_output_token_1M"] / 1000000
+        execution_price = input_price + output_price
+        
+        response_text = '\n'.join([block.text for block in response.content if block.type == 'text'])
+        return response_text, execution_price
     except Exception as e:
-        return f"Unexpected error while handling Claude request: {e}"
+        execution_price = 0
+        return f"Unexpected error while handling Claude request: {e}", execution_price
 
 # gemini llm handler
 def handle_gemini(context):
@@ -131,8 +133,8 @@ def handle_gemini(context):
         genai.configure(api_key=get_api_key("google"))
 
         messages = format_chat_history(context["chat_history"], "gemini") + [
-            {"role": "user", "parts": [context["user_prompt"]]},
-            {"role": "model", "parts": [context["phase_instructions"]]}
+            {"role": "model", "parts": [context["phase_instructions"]]},
+            {"role": "user", "parts": [context["user_prompt"]]}
         ]
 
         if context["supports_image"] and context["image_urls"]:
@@ -146,12 +148,17 @@ def handle_gemini(context):
         chat_session = genai.GenerativeModel(
             model_name=context["model"],
             generation_config= {"temperature": context["temperature"],"top_p": context["top_p"],"max_output_tokens": context["max_tokens"],"response_mime_type":"text/plain"},
-            system_instruction=f"{context['SYSTEM_PROMPT']}"
+            system_instruction=context["SYSTEM_PROMPT"]
         ).start_chat(history=messages)
+
         response = chat_session.send_message(context["user_prompt"])
-        return response.text
+
+        input_price = getattr(response.usage_metadata, 'prompt_token_count', 0) * context["price_input_token_1M"] / 1000000
+        output_price = getattr(response.usage_metadata, 'candidates_token_count', 0) * context["price_output_token_1M"] / 1000000
+        execution_price = input_price + output_price
+        return response.text, execution_price
     except Exception as e:
-        return f"Unexpected error while handling Gemini request: {e}"
+        return f"Unexpected error while handling Gemini request: {e}", 0
 
 # perplexity handler
 def handle_perplexity(context):
@@ -160,7 +167,7 @@ def handle_perplexity(context):
         return "Images are not supported by selected model."
     api_key = get_api_key("perplexity")
     url = "https://api.perplexity.ai/chat/completions"
-
+    execution_price = 0
     # Prepare messages
     messages = [
                    {"role": "system", "content": context["SYSTEM_PROMPT"] + context["phase_instructions"]}
@@ -198,15 +205,23 @@ def handle_perplexity(context):
         response.raise_for_status()  # Raise an error for bad status codes
 
         response_json = response.json()
+
+        if "usage" in response_json:
+            input_price = response_json["usage"]["prompt_tokens"] * context["price_input_token_1M"] / 1000000
+            output_price = response_json["usage"]["total_tokens"] * context["price_output_token_1M"] / 1000000
+            execution_price = input_price + output_price
+
+
+        
         if "choices" in response_json and len(response_json["choices"]) > 0:
-            return response_json["choices"][0]["message"]["content"]
+            return response_json["choices"][0]["message"]["content"], execution_price
         else:
-            return "Unexpected response format from Perplexity API."
+            return "Unexpected response format from Perplexity API.", execution_price
 
     except requests.exceptions.HTTPError as http_err:
-        return f"HTTP error occurred while handling Perplexity request: {http_err}"
+        return f"HTTP error occurred while handling Perplexity request: {http_err}", execution_price
     except requests.exceptions.RequestException as req_err:
-        return f"Error occurred while making the Perplexity request: {req_err}"
+        return f"Error occurred while making the Perplexity request: {req_err}", execution_price
 
 
 def rag_handler(context):

@@ -1,5 +1,6 @@
 APP_URL = "https://clinical-feedback.streamlit.app"
 PUBLISHED = True
+APP_IMAGE = "clinical_feedback_flat.webp"
 
 ##AREAS OF FOCUS from https://asmepublications-onlinelibrary-wiley-com.sgu.idm.oclc.org/doi/epdf/10.1111/tct.13766 "Making Narrative Feedback Meanignful""
 

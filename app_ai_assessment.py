@@ -1,4 +1,5 @@
 APP_URL = "https://ai-assessment.streamlit.app"
+APP_IMAGE = "guided_critical_analysis_flat.webp"
 
 PUBLISHED = True
 

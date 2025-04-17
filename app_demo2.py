@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://microapp-demo2.streamlit.app"
+APP_IMAGE = "demo2_flat.webp"
 
 APP_TITLE = "MicroApp Demo App #2"
 APP_INTRO = """This app demonstrates all the various AI Prompt configurations that are available to a micro-app. It can be used to understand what kinds of actions a "phase" can accomplish, and how to configure those actions. 
@@ -207,7 +208,12 @@ PAGE_CONFIG = {
     "initial_sidebar_state": "expanded"
 }
 
-SIDEBAR_HIDDEN = True
+SIDEBAR_HIDDEN = False
+
+USE_SQL = False
+USE_GSHEETS = True
+GSHEETS_URL_OVERRIDE = "https://docs.google.com/spreadsheets/d/1h_YzpaSmUiHYbP6aRyH10xuWvE9sMFL7WugmDvp9UDY/edit?gid=0#gid=0"
+GSHEETS_WORKSHEET_OVERRIDE = "Demo2"
 
 TEMPLATES = {"Demo 2":"config_demo2"}
 

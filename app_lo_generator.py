@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://lo-generator.streamlit.app"
+APP_IMAGE = "lo_builder_flat.webp"
 
 APP_TITLE = "Learning Objectives Builder"
 APP_INTRO = """This micro-app allows you to generate learning objectives or validate alignment for existing learning objectives. It is meant as an experiment to explore how adoption, efficiency, and shareability of generative AI is affected when you wrap lightweight, hyper-personalized wrappers around it. Wrappers like this can take a few hours to build, which fast enough to justify building different micro-apps for different use cases. They also ideally codify good practices (in this case, instructional design practices) into AI prompting. 

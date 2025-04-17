@@ -1,5 +1,5 @@
 APP_URL = "https://alt-text.streamlit.app"
-APP_IMAGE = "alt_text.png"
+APP_IMAGE = "alt_text_flat.webp"
 PUBLISHED = True
 
 APP_TITLE = "Alt Text Generator"

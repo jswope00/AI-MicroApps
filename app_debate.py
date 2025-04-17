@@ -1,5 +1,5 @@
 APP_URL = "https://ai-debate-partner.streamlit.app"
-APP_IMAGE = "ai_debate.png"
+APP_IMAGE = "debate_flat.webp"
 PUBLISHED = True
 
 APP_TITLE = "AI Debate Partner"

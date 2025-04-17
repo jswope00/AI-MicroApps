@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://microapp-demo1.streamlit.app"
+APP_IMAGE = "demo1_flat.webp"
 
 APP_TITLE = "MicroApp Demo App #1"
 APP_INTRO = """This app demonstrates all the fields that are available to a micro-app. It can be used to understand what kinds of inputs a micro-app can ask for, and how to configure those fields. 
@@ -48,6 +49,29 @@ PHASES = {
   
     },
     "phase3": {
+        "name": "Chat Area",
+        "fields": {
+            "chat": {
+                "type": "chat_input",
+                "max_messages": 3,
+                "placeholder": "What is your name?",
+                "initial_assistant_message": "Hello, I'm a chatbot with a name. You have to determine my name."
+            }
+        },
+        "allow_skip": True,
+        "ai_response": True,
+        "phase_instructions": "Your name is Bottina. You will tell the user your name if they ask.",
+        "user_prompt": "Please provide feedback on whether or not I discovered that the bot's name is Bottina in this chat: \n\n{chat}",
+        "scored_phase": True,
+        "rubric": """
+        1. Name:
+        2 points - The user determined that the bot's name is Bottina.
+        0 points - The user has NOT determined that the bot's name is Bottina.
+        """,
+        "minimum_score": 0,
+        "show_prompt": False,
+    },
+    "phase4": {
         "name": "Radio Select",
         "fields": {
             "pluto": {
@@ -60,7 +84,7 @@ PHASES = {
         "user_prompt": "{pluto}",
         "allow_skip": True,
     },
-    "phase4": {
+    "phase5": {
         "name": "Dropdown Select",
         "fields": {
             "tech": {
@@ -73,7 +97,7 @@ PHASES = {
         "user_prompt": "{tech}",
         "allow_skip": True,
     },
-    "phase5": {
+    "phase6": {
         "name": "Checkbox",
         "fields": {
             "check_me": {
@@ -86,7 +110,7 @@ PHASES = {
         "custom_response": "Thanks!",
         "allow_skip": True,
     },
-    "phase6": {
+    "phase7": {
         "name": "age",
         "fields": {
             "age": {
@@ -100,7 +124,7 @@ PHASES = {
         "user_prompt": "{age}",
         "allow_skip": True,
     },
-    "phase7": {
+    "phase8": {
         "name": "mars",
         "fields": {
             "mars": {
@@ -117,7 +141,10 @@ PHASES = {
 }
 
 PREFERRED_LLM = "gpt-4o-mini"
-LLM_CONFIG_OVERRIDE = {}
+LLM_CONFIG_OVERRIDE = {
+    "max_tokens": 8000,
+    "temperature": 1.0
+}
 
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
@@ -136,6 +163,11 @@ PAGE_CONFIG = {
 }
 
 SIDEBAR_HIDDEN = False
+
+USE_SQL = True
+USE_GSHEETS = True
+GSHEETS_URL_OVERRIDE = "https://docs.google.com/spreadsheets/d/1TGCZfdbBUbegi2Gi91_VmtazkpZGOS2g16qquX6pLp0/edit?gid=0#gid=0"
+GSHEETS_WORKSHEET_OVERRIDE = "Sheet1"
 
 from core_logic.main import main
 if __name__ == "__main__":

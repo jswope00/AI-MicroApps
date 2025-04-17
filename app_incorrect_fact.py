@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://incorrect-fact.streamlit.app"
+APP_IMAGE = "incorrect_fact_flat.webp"
 
 APP_TITLE = "Find the Incorrect Fact"
 APP_INTRO = """In this demonstration, the AI will generate mostly factual information about a topic, with one incorrect fact. It is your job to find the incorrect fact. 

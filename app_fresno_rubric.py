@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://fresno-rubric.streamlit.app"
+APP_IMAGE = "fresno_rubric_flat.webp"
 
 APP_TITLE = "Fresno Test for Evidence Based Medicine"
 APP_INTRO = """This is an application that applies the Fresno test (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC143529/pdf/319.pdf) for competence in evidence based medicine, and provides feedback via AI using the same rubric as the Fresno test. It is an experimental app to determine the correlation between AI scoring and human scoring for a validated accurate and effective rubric. 

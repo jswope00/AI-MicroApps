@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://ml-flowcharts.streamlit.app"
+APP_IMAGE = "ml_flow_chart_flat.webp"
 
 APP_TITLE = "Flow chart Analysis"
 APP_INTRO = """This app demonstrates AI microapp image fields."""

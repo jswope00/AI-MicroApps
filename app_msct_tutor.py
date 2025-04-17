@@ -1,5 +1,6 @@
 PUBLISHED = True
 APP_URL = "https://msct-tutor.streamlit.app"
+APP_IMAGE = "msct_tutor_flat.webp"
 
 APP_TITLE = "Modified Script Concordance Test (mSCT)"
 APP_INTRO = """This is an AI tutor that presents interactive medical case studies with diagnosis and treatment scenarios. 
