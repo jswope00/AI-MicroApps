@@ -16,7 +16,7 @@ HTML_BUTTON = {
     "url": "https://www.youtube.com/watch?v=jqpEJ2995IA"    
 }
 
-SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. You may also mention tips such as placing painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust."""
+SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt."""
 
 PHASES = {
    "dimension_calculations": {
@@ -103,7 +103,7 @@ PHASES = {
             },
             {
                 "condition": {"$and":[{"picture-weight": "medium"},{"wall-type": "normal"}]},
-                "prompt": "- Recommend a picture hook or wall anchor to compensate for the picture's weight.\n",
+                "prompt": "- Recommend a picture hook or wall anchor to compensate for the picture's weight.  Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. \n",
             },
             {
                 "condition": {"$and":[{"picture-weight": "heavy"},{"wall-type": "normal"}]},
@@ -113,31 +113,15 @@ PHASES = {
                 "condition": {"wall-type": "reinforced"},
                 "prompt": "- Explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard.\n",
             },
-
-
-
-{
-
-
-
-									
             {
-                "condition": {"$or":[{"hometown-option": True},{"absentee-option": True}]},
-                "prompt": "- Ask if the user wants to vote on hometown issues. If yes, then ask if they have time to go home. If the student has time to go home, then this branch stops with 'Go home and vote. Check 'ballotpedia.org' for local voting information.' If the student does not have time, then end this branch with 'Request an absentee ballot'.\n",
-            },
-            {
-                "condition": {"oncampus-option": True},
-                "prompt": "Vote on campus.\n End the branch with a box that includes \"{oncampus-locations}\" and \"{oncampus-requirements}\"\n",
-            },
-            {
-                "condition": {"offcampus-option": True},
-                "prompt": "Vote off campus.\n End the branch with a box that includes \"{offcampus-locations}\" and \"{offcampus-requirements}\"\n",
+                "condition": {},
+                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in \"{measurement-units}\".\n",
             },
             {
                 "condition": {},
-                "prompt": """Once you have shared the Mermaid.js code to generate this flowchart, tell the user to paste in into the Mermaid live editor, and give the user a link to https://mermaid.live. Also tell the user that non-partisan information about candidates and issues on their ballot can be found at Ballotpedia, and give them a link to https://ballotpedia.org/wiki/index.php?title=Sample_Ballot_Lookup&Source=sitenotice with a recommendation to type their zip code into the search box."""
+                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, PICTURE_HEIGHT, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
             },
-          ],
+        ],
         "ai_response": True,
         "allow_skip": False,
         "show_prompt": True,
