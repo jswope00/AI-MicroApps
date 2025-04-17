@@ -90,45 +90,21 @@ PHASES = {
                 "condition": {},
                 "prompt": "Please use {measurement_units} in all of your output for this prompt."
             },
-            {
+        {
                 "condition": {},
-                "prompt": """For future reference, note the following values entered by the user:
-                PICTURE_HEIGHT: {picture_height}
-																			DROP_TO_HARDWARE: {drop_to_hardware}
-																			AVAILABLE_WALL_WIDTH: {available_wall_width}
-                """
-            },
-            {
-                "condition": {"measurement_units": "inches"},
-                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer_height_inches}.\n",
-            },
-            {
-                "condition": {"measurement_units": "centimeters"},
-                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer_height_centimeters}.\n",
-            },
-            {
-                "condition": {},
-                "prompt": "- Calculate the nail's height off the floor using the formula NAIL_HEIGHT = EYE_HEIGHT + ({picture_height}/2) - {drop_to_hardware}."
-            },
-            {
-                "condition": {},
-                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = {available_wall_width}/2. Explain how you arrived at these calculations."
-            },
-            {
-                "condition": {},
-                "prompt": "- Report the values you just calculated. What numbers did you get for NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement_units}?'\n",
+                "prompt": "- Now tell the user to place the nail at a height of {( .93 * viewer_height_inches ) + ( picture_height/2 ) - drop_to_hardware} off the floor and a horizontal distance of {available_wall_width/2} in {measurement_units} from the left obstacle. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results.'\n",
             },
             {
                 "condition": {"$and":[{"picture_weight": "light"},{"wall_type": "normal"}]},
-                "prompt": "- Recommend a simple nail or adhesive hook.\n",
+                "prompt": "- Tell the user a simple nail or adhesive hook should suffice for a lightweight picture.\n",
             },
             {
                 "condition": {"$and":[{"picture_weight": "medium"},{"wall_type": "normal"}]},
-                "prompt": "- Recommend a picture hook or wall anchor to compensate for the picture's weight.  Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. \n",
+                "prompt": "- Recommend a picture hook or wall anchor to compensate for a medium-weight picture.  Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. \n",
             },
             {
                 "condition": {"$and":[{"picture_weight": "heavy"},{"wall_type": "normal"}]},
-                "prompt": "- Recommend hammering one or more nails into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center.\n",
+                "prompt": "- Recommend for a heavy picture that the user hammer one or more nails into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center.\n",
             },
             {
                 "condition": {"wall_type": "reinforced"},
@@ -136,11 +112,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement_units}. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results. For example, instead of writing 'Hammer the nail NAIL_HEIGHT above the floor' fill in the word NAIL_HEIGHT with the specific number you calculated.'\n",
-            },
-            {
-                "condition": {},
-                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user. Your image prompt should label {eye_height} as the height of the picture, {drop_to_hardware} as the distance from the top of the picture down to the wire or other hanging hardware, and {nail_horizontal_position} as the distance between the nail and a nearby wall or obstacle. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
+                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, with labeled arrows to indicate the appropriate dimensions. This schematic image should include a small nail icon or graphic positioned { .93 * viewer_height_centimeters + (picture_height/2) - drop_to_hardware } {dimension_units} off the floor and a distance of { {available_wall_width}/2 } {measurement_units} from the nearest left obstacle. Your prompt should also draw a dashed rectangle corresponding to the picture frame, showing that the picture has a height of {picture_height} and another labeled arrow showing the picture has a hardware drop of {hardware_drop}. The lower end of the hardware drop should line up horizontally with the position of the nail. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
             },
         ],
         "ai_response": True,
