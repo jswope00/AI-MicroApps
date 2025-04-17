@@ -49,7 +49,7 @@ PHASES = {
             "picture-height": {
                 "type": "number_input",
                 "step": 1,
-                "label": "What's the height of your picture, including the frame?",
+                "label": "What's the height of your picture, including the frame? (You can just type a whole number)",
             },
             "drop-to-hardware": {
                 "type": "number_input",
@@ -79,23 +79,23 @@ PHASES = {
         "user_prompt": [
             {
                 "condition": {},
-                "prompt": "Please use \"{measurement-units}\" in all of your output for this prompt."
+                "prompt": "Please use {measurement-units} in all of your output for this prompt."
             },
             {
                 "condition": {"measurement-units": "inches"},
-                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * \"viewer-height-inches\".\n",
+                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer-height-inches}.\n",
             },
             {
                 "condition": {"measurement-units": "centimeters"},
-                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * \"viewer-height-centimeters\".\n",
+                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer-height-centimeters}.\n",
             },
             {
                 "condition": {},
-                "prompt": "- Calculate the nail's height off the floor using the formula NAIL_HEIGHT = EYE_HEIGHT + (\"{picture_height}\"/2) - \"{drop-to-hardware}\"."
+                "prompt": "- Calculate the nail's height off the floor using the formula NAIL_HEIGHT = EYE_HEIGHT + ({picture_height}/2) - {drop-to-hardware}."
             },
             {
                 "condition": {},
-                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = \"{available-wall-width}\"/2."
+                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = {available-wall-width}/2."
             },
             {
                 "condition": {"$and":[{"picture-weight": "light"},{"wall-type": "normal"}]},
@@ -115,7 +115,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in \"{measurement-units}\".\n",
+                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement-units}. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results. For example, instead of writing 'Hammer the nail NAIL_HEIGHT above the floor' you might write 'Hammer the nail 53 inches above the floor.'\n",
             },
             {
                 "condition": {},
