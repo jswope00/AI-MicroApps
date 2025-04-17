@@ -16,7 +16,12 @@ HTML_BUTTON = {
     "url": "https://www.youtube.com/watch?v=jqpEJ2995IA"    
 }
 
-SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt."""
+SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. Your calculations will depend on the following fields from the user:
+
+EYE_HEIGHT: This will be the height off the ground of the eye of a typical standing viewer.
+
+PICTURE_HEIGHT: This will be 
+"""
 
 PHASES = {
    "dimension_calculations": {
@@ -82,6 +87,14 @@ PHASES = {
                 "prompt": "Please use {measurement-units} in all of your output for this prompt."
             },
             {
+                "condition": {},
+                "prompt": """For future reference, note the following values entered by the user:
+                			PICTURE_HEIGHT: {picture-height}
+																			DROP_TO_HARDWARE: {drop-to-hardware}
+																			AVAILABLE_WALL_WIDTH: {available-wall-width}
+                """
+            },
+            {
                 "condition": {"measurement-units": "inches"},
                 "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer-height-inches}.\n",
             },
@@ -123,7 +136,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, PICTURE_HEIGHT, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
+                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, the height of the picture, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
             },
         ],
         "ai_response": True,
