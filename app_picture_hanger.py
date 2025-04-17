@@ -5,7 +5,7 @@ APP_TITLE = "Hang a Picture"
 APP_INTRO = """This app helps you hang a painting, framed photo, or other flat artwork on the wall of a home or gallery"""
 
 APP_HOW_IT_WORKS = """
-A simple flowchart can help students overwhelmed with classes fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nIt utilizes the OpenAI and other AI APIs to send a custom prompt to AI with the user's inputs and returns the AI's response. 
+This app helps you hang a picture by telling you where to hammer your nail based on the size of your wall and the frame.\n\nIt uses OpenAI behind the scenes to calculate this position based on the fields you complete and generates instructions accordingly. 
  """
 
 SHARED_ASSET = {
@@ -15,8 +15,6 @@ HTML_BUTTON = {
     "button_text": "BallotPedia.org Sample Ballot",
     "url": "https://ballotpedia.org/wiki/index.php?title=Sample_Ballot_Lookup&Source=sitenotice"    
 }
-
-
 
 SYSTEM_PROMPT = """Acting as an expert in data visualization, you will generate the code required to draw a decision tree. You must use the syntax for the Mermaid.js JavaScript library to produce the visualization. Do not create an image directly with a text-to-image generator like DALL-E; it must be constructed with the markdown-like Mermaid.js code."""
 
@@ -123,8 +121,8 @@ LLM_CONFIG_OVERRIDE = {"gpt-4o-mini": {
 }
 
 PAGE_CONFIG = {
-    "page_title": "Voting Decision Tree",
-    "page_icon": "️✅",
+    "page_title": "Hang a Picture",
+    "page_icon": "️🖼",
     "layout": "centered",
     "initial_sidebar_state": "collapsed"
 }
