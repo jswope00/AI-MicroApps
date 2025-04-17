@@ -16,7 +16,7 @@ HTML_BUTTON = {
     "url": "https://www.youtube.com/watch?v=jqpEJ2995IA"    
 }
 
-SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. You'll calculate the EYE_HEIGHT = .93 * VIEWER_HEIGHT. For the nail's height off the floor, use the formula NAIL_HEIGHT = EYE_HEIGHT + (PICTURE_HEIGHT/2) - DROP_TO_HARDWARE. For the nail's distance from the nearest horizontal obstacle, use the formula NAIL_HORIZONTAL_POSITION = AVAILABLE_WALL_WIDTH/2. If the PICTURE_WEIGHT is "light", recommend using a simple nail or adhesive hook; if  the PICTURE_WEIGHT is "medium", recommend a picture hook or wall anchor; the PICTURE_WEIGHT is "heavy", recommend hammering a nail into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center. If the WALL_TYPE is "reinforced", explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard. Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. After typing out these instructions, write a prompt to be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, PICTURE_HEIGHT, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting she or he enter this prompt into ChatGPT.com to generate a useful diagram."""
+SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. You'll calculate the EYE_HEIGHT = .93 * VIEWER_HEIGHT. For the nail's height off the floor, use the formula NAIL_HEIGHT = EYE_HEIGHT + (PICTURE_HEIGHT/2) - DROP_TO_HARDWARE. For the nail's distance from the nearest horizontal obstacle, use the formula NAIL_HORIZONTAL_POSITION = AVAILABLE_WALL_WIDTH/2. If the PICTURE_WEIGHT is "light", recommend using a simple nail or adhesive hook; if the PICTURE_WEIGHT is "medium", recommend a picture hook or wall anchor; the PICTURE_WEIGHT is "heavy", recommend hammering a nail into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center. If the WALL_TYPE is "reinforced", explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard. Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. After typing out these instructions, write a prompt to be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, PICTURE_HEIGHT, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting she or he enter this prompt into ChatGPT.com to generate a useful diagram."""
 
 PHASES = {
    "dimension_calculations": {
@@ -29,7 +29,8 @@ PHASES = {
             "measurement-units": {
                 "type": "selectbox",
                 "options": ['inches', 'centimeters'],
-                "help": "Are you measuring dimensions in inches or centimeters? (Whole numbers without fractions or decimals will suffice)",
+                "label": "Are you measuring dimensions in inches or centimeters?",
+                "help": "Whole numbers without fractions or decimals will suffice",
             },
             "viewer-height-inches": {
                 "type": "slider",
@@ -62,44 +63,17 @@ PHASES = {
                 "label": "How much horizontal wall space is available?",
                 "help": "Include the total span in the units you chose (inches or cm), eg between adjacent walls, nearby furniture, or pictures to the left and right.",
             },
-            "absentee-option": {
-                "type": "checkbox",
-                "label": """My students have enough time to order an absentee ballot.""",
-                "help": "If checked, the flowchart will offer that option.",
+            "picture-weight": {
+                "type": "selectbox",
+                "options": ['light (under 5 pounds)', 'medium (5-20 pounds)', 'heavy (over 20 pounds)'],
+                "label": "How heavy is the picture?",
+                "help": "Include the frame and glazing, if any"
             },
-            "oncampus-option": {
-                "type": "checkbox",
-                "label": """My students can vote on-campus.""",
-                "help": "This assumes there's one or more designated campus facilities.",
-            },
-            "oncampus-locations": {
-                "type": "text_input",
-                "label": """Where can students vote on-campus?""",
-                "help": "Give one or more times and/or addresses. Short answers fit the flowchart best!",
-                "value": "9am-5pm in 123 Susan B. Anthony Hall",
-            },
-             "oncampus-requirements": {
-                "type": "text_input",
-                "label": """What must students do to vote on campus?""",
-                "help": "Mention any requirements for voting in that location.",
-                "value": "Bring a photo id and proof of residency",
-            },
-            "offcampus-option": {
-                "type": "checkbox",
-                "label": """Students can vote off-campus in nearby town/s.""",
-                "help": "If checked, the flowchart will offer that option.",
-            },
-            "offcampus-locations": {
-                "type": "text_input",
-                "label": """Where can students vote off-campus?""",
-                "help": "Give one or more times and/or addresses. Short answers fit the flowchart best!",
-                "value": "9am-5pm at the Springfield Town Hall, 789 Main Street",
-            },
-              "offcampus-requirements": {
-                "type": "text_input",
-                "label": """What must students do to vote off campus?""",
-                "help": "Mention any requirements for voting in that location.",
-                "value": "Bring a photo id and proof of residency",
+            "wall-type": {
+                "type": "selectbox",
+                "options": ['normal', 'reinforced'],
+                "label": "What type of wall are you hanging on?",
+                "help": "Most buildings have normal drywall, but some galleries are reinforced with plywood backing"
             },
         },
         "user_prompt": [
