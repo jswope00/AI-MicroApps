@@ -1,8 +1,8 @@
 PUBLISHED = False
 APP_URL = "https://voting-decision-tree.streamlit.app"
 
-APP_TITLE = "Hang a Picture"
-APP_INTRO = """This app helps you hang a painting, framed photo, or other flat artwork on the wall of a home or gallery"""
+APP_TITLE = "🖼 Hang a Picture"
+APP_INTRO = """🔨 This app helps you hang a painting, framed photo, or other flat artwork on the wall of a home or gallery"""
 
 APP_HOW_IT_WORKS = """
 This app helps you hang a picture by telling you where to hammer your nail based on the size of your wall and the frame.\n\nIt uses OpenAI behind the scenes to calculate this position based on the fields you complete and generates instructions accordingly. 
@@ -150,7 +150,7 @@ SIDEBAR_HIDDEN = True
 SCORING_DEBUG_MODE = True
 DISPLAY_COST = True
 
-COMPLETION_MESSAGE = "⚠️ Chatbots can generate incorrect results; always check the output before publishing it. We hope this app makes voting easier!"
+COMPLETION_MESSAGE = "⚠️ Chatbots can generate incorrect results; your eye is the best judge of the results. We hope this app makes it easier to hang art in your room!"
 COMPLETION_CELEBRATION = False
 
 from core_logic.main import main
