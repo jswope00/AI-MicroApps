@@ -1,9 +1,8 @@
 PUBLISHED = False
 APP_URL = "https://voting-decision-tree.streamlit.app"
 
-APP_TITLE = "How To Vote: A Decision Tree Generator for College Students"
-APP_INTRO = """This app helps you draw a custom flowchart to help your students decide when and where to vote. 
-"""
+APP_TITLE = "Hang a Picture"
+APP_INTRO = """This app helps you hang a painting, framed photo, or other flat artwork on the wall of a home or gallery"""
 
 APP_HOW_IT_WORKS = """
 A simple flowchart can help students overwhelmed with classes fit voting into their schedule. This app tries to draw a custom decision tree based on a teacher's answers to a few fields.\n\nIt utilizes the OpenAI and other AI APIs to send a custom prompt to AI with the user's inputs and returns the AI's response. 
