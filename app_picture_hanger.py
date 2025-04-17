@@ -12,11 +12,11 @@ SHARED_ASSET = {
 }
 
 HTML_BUTTON = {
-    "button_text": "BallotPedia.org Sample Ballot",
-    "url": "https://ballotpedia.org/wiki/index.php?title=Sample_Ballot_Lookup&Source=sitenotice"    
+    "button_text": "Make your own AI MicroApp",
+    "url": "https://www.youtube.com/watch?v=jqpEJ2995IA"    
 }
 
-SYSTEM_PROMPT = """Acting as an expert in data visualization, you will generate the code required to draw a decision tree. You must use the syntax for the Mermaid.js JavaScript library to produce the visualization. Do not create an image directly with a text-to-image generator like DALL-E; it must be constructed with the markdown-like Mermaid.js code."""
+SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. For the nail's height off the floor, use the formula NAIL_HEIGHT = EYE_HEIGHT + (PICTURE_HEIGHT/2) - DROP_TO_HARDWARE. For the nail's distance from the nearest horizontal obstacle, use the formula NAIL_HORIZONTAL_POSITION = AVAILABLE_WALL_WIDTH/2. If the PICTURE_WEIGHT is "light", recommend using a simple nail or adhesive hook; if  the PICTURE_WEIGHT is "medium", recommend a picture hook or wall anchor; the PICTURE_WEIGHT is "heavy", recommend hammering a nail into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center. If the WALL_TYPE is "reinforced", explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard. Do not create an image directly with a text-to-image generator like DALL-E; it must be constructed with the markdown-like Mermaid.js code."""
 
 PHASES = {
    "tree-generation": {
