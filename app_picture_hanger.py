@@ -35,50 +35,50 @@ PHASES = {
                 "type": "markdown",
                 "body": "Use a tape measure to find the following dimensions."
             },
-            "measurement-units": {
+            "measurement_units": {
                 "type": "selectbox",
                 "options": ['inches', 'centimeters'],
                 "label": "Are you measuring dimensions in inches or centimeters?",
                 "help": "Whole numbers without fractions or decimals will suffice",
             },
-            "viewer-height-inches": {
+            "viewer_height_inches": {
                 "type": "slider",
                 "min_value": 60,
                 "max_value": 75,
                 "label": "How tall is your average viewer in inches? (The average American height is 66 in.)",
-                "showIf": {"measurement-units": "inches"},
+                "showIf": {"measurement_units": "inches"},
             },
-            "viewer-height-centimeters": {
+            "viewer_height_centimeters": {
                 "type": "slider",
                 "min_value": 155,
                 "max_value": 180,
                 "label": "How tall is your average viewer in centimeters? (The average American height is 168 cm.)",
-                "showIf": {"measurement-units": "centimeters"},
+                "showIf": {"measurement_units": "centimeters"},
             },
-            "picture-height": {
+            "picture_height": {
                 "type": "number_input",
                 "step": 1,
                 "label": "What's the height of your picture, including the frame? (You can just type a whole number)",
             },
-            "drop-to-hardware": {
+            "drop_to_hardware": {
                 "type": "number_input",
                 "step": 1,
                 "label": "How far below the top of the picture is the hanger on the back?",
                 "help": "Measure down from the top to the place where the nail will go, whether a hook or a wire held taut, in the units you chose (inches or cm).",
             },
-            "available-wall-width": {
+            "available_wall_width": {
                 "type": "number_input",
                 "step": 1,
                 "label": "How much horizontal wall space is available?",
                 "help": "Include the total span in the units you chose (inches or cm), eg between adjacent walls, nearby furniture, or pictures to the left and right.",
             },
-            "picture-weight": {
+            "picture_weight": {
                 "type": "selectbox",
                 "options": ['light (under 5 pounds)', 'medium (5-20 pounds)', 'heavy (over 20 pounds)'],
                 "label": "How heavy is the picture?",
                 "help": "Include the frame and glazing (glass or Plexi front}, if any"
             },
-            "wall-type": {
+            "wall_type": {
                 "type": "selectbox",
                 "options": ['normal', 'reinforced'],
                 "label": "What type of wall are you hanging on?",
@@ -88,59 +88,59 @@ PHASES = {
         "user_prompt": [
             {
                 "condition": {},
-                "prompt": "Please use {measurement-units} in all of your output for this prompt."
+                "prompt": "Please use {measurement_units} in all of your output for this prompt."
             },
             {
                 "condition": {},
                 "prompt": """For future reference, note the following values entered by the user:
-                PICTURE_HEIGHT: {picture-height}
-																			DROP_TO_HARDWARE: {drop-to-hardware}
-																			AVAILABLE_WALL_WIDTH: {available-wall-width}
+                PICTURE_HEIGHT: {picture_height}
+																			DROP_TO_HARDWARE: {drop_to_hardware}
+																			AVAILABLE_WALL_WIDTH: {available_wall_width}
                 """
             },
             {
-                "condition": {"measurement-units": "inches"},
-                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer-height-inches}.\n",
+                "condition": {"measurement_units": "inches"},
+                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer_height_inches}.\n",
             },
             {
-                "condition": {"measurement-units": "centimeters"},
-                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer-height-centimeters}.\n",
-            },
-            {
-                "condition": {},
-                "prompt": "- Calculate the nail's height off the floor using the formula NAIL_HEIGHT = EYE_HEIGHT + ({picture_height}/2) - {drop-to-hardware}."
+                "condition": {"measurement_units": "centimeters"},
+                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * {viewer_height_centimeters}.\n",
             },
             {
                 "condition": {},
-                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = {available-wall-width}/2. Explain how you arrived at these calculations."
+                "prompt": "- Calculate the nail's height off the floor using the formula NAIL_HEIGHT = EYE_HEIGHT + ({picture_height}/2) - {drop_to_hardware}."
             },
             {
                 "condition": {},
-                "prompt": "- Report the values you just calculated. What numbers did you get for NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement-units}?'\n",
+                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = {available_wall_width}/2. Explain how you arrived at these calculations."
             },
             {
-                "condition": {"$and":[{"picture-weight": "light"},{"wall-type": "normal"}]},
+                "condition": {},
+                "prompt": "- Report the values you just calculated. What numbers did you get for NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement_units}?'\n",
+            },
+            {
+                "condition": {"$and":[{"picture_weight": "light"},{"wall_type": "normal"}]},
                 "prompt": "- Recommend a simple nail or adhesive hook.\n",
             },
             {
-                "condition": {"$and":[{"picture-weight": "medium"},{"wall-type": "normal"}]},
+                "condition": {"$and":[{"picture_weight": "medium"},{"wall_type": "normal"}]},
                 "prompt": "- Recommend a picture hook or wall anchor to compensate for the picture's weight.  Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. \n",
             },
             {
-                "condition": {"$and":[{"picture-weight": "heavy"},{"wall-type": "normal"}]},
+                "condition": {"$and":[{"picture_weight": "heavy"},{"wall_type": "normal"}]},
                 "prompt": "- Recommend hammering one or more nails into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center.\n",
             },
             {
-                "condition": {"wall-type": "reinforced"},
+                "condition": {"wall_type": "reinforced"},
                 "prompt": "- Explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard.\n",
             },
             {
                 "condition": {},
-                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement-units}. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results. For example, instead of writing 'Hammer the nail NAIL_HEIGHT above the floor' fill in the word NAIL_HEIGHT with the specific number you calculated.'\n",
+                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement_units}. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results. For example, instead of writing 'Hammer the nail NAIL_HEIGHT above the floor' fill in the word NAIL_HEIGHT with the specific number you calculated.'\n",
             },
             {
                 "condition": {},
-                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, the height of the picture, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
+                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user. Your image prompt should label {eye_height} as the height of the picture, {drop_to_hardware} as the distance from the top of the picture down to the wire or other hanging hardware, and {nail_horizontal_position} as the distance between the nail and a nearby wall or obstacle. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
             },
         ],
         "ai_response": True,
