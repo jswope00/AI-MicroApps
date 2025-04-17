@@ -57,7 +57,7 @@ PHASES = {
                 "label": "How far below the top of the picture is the hanger on the back?",
                 "help": "Measure down from the top to the place where the nail will go, whether a hook or a wire held taut, in the units you chose (inches or cm).",
             },
-            "available_wall_width": {
+            "available-wall-width": {
                 "type": "number_input",
                 "step": 1,
                 "label": "How much horizontal wall space is available?",
@@ -67,7 +67,7 @@ PHASES = {
                 "type": "selectbox",
                 "options": ['light (under 5 pounds)', 'medium (5-20 pounds)', 'heavy (over 20 pounds)'],
                 "label": "How heavy is the picture?",
-                "help": "Include the frame and glazing, if any"
+                "help": "Include the frame and glazing (glass or plastic}, if any"
             },
             "wall-type": {
                 "type": "selectbox",
@@ -92,6 +92,10 @@ PHASES = {
             {
                 "condition": {},
                 "prompt": "- Calculate the nail's height off the floor using the formula NAIL_HEIGHT = EYE_HEIGHT + (\"{picture_height}\"/2) - \"{drop-to-hardware}\"."
+            },
+            {
+                "condition": {},
+                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = \"{available-wall-width}\"/2."
             },
 
 
