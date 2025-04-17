@@ -16,7 +16,7 @@ HTML_BUTTON = {
     "url": "https://www.youtube.com/watch?v=jqpEJ2995IA"    
 }
 
-SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. For the nail's height off the floor, use the formula NAIL_HEIGHT = EYE_HEIGHT + (PICTURE_HEIGHT/2) - DROP_TO_HARDWARE. For the nail's distance from the nearest horizontal obstacle, use the formula NAIL_HORIZONTAL_POSITION = AVAILABLE_WALL_WIDTH/2. If the PICTURE_WEIGHT is "light", recommend using a simple nail or adhesive hook; if  the PICTURE_WEIGHT is "medium", recommend a picture hook or wall anchor; the PICTURE_WEIGHT is "heavy", recommend hammering a nail into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center. If the WALL_TYPE is "reinforced", explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard. Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. After typing out these instructions, write a prompt to be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, PICTURE_HEIGHT, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting she or he enter this prompt into ChatGPT.com to generate a useful diagram."""
+SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. You'll calculate the EYE_HEIGHT = .93 * VIEWER_HEIGHT. For the nail's height off the floor, use the formula NAIL_HEIGHT = EYE_HEIGHT + (PICTURE_HEIGHT/2) - DROP_TO_HARDWARE. For the nail's distance from the nearest horizontal obstacle, use the formula NAIL_HORIZONTAL_POSITION = AVAILABLE_WALL_WIDTH/2. If the PICTURE_WEIGHT is "light", recommend using a simple nail or adhesive hook; if  the PICTURE_WEIGHT is "medium", recommend a picture hook or wall anchor; the PICTURE_WEIGHT is "heavy", recommend hammering a nail into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center. If the WALL_TYPE is "reinforced", explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard. Also mention that you can place painter's tape on the wall where you plan to drill or hammer to prevent the wall from chipping and making dust. After typing out these instructions, write a prompt to be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, eg EYE_HEIGHT, PICTURE_HEIGHT, DROP_TO_HARDWARE, and NAIL_HORIZONTAL_POSITION. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a dark blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting she or he enter this prompt into ChatGPT.com to generate a useful diagram."""
 
 PHASES = {
    "dimension_calculations": {
@@ -27,9 +27,23 @@ PHASES = {
                 "body": "Use a tape measure to find the following dimensions."
             },
             "measurement-units": {
-                "type": "text_input",
-                "label": """Are you measuring dimensions in inches or centimeters?""",
-                "help": "Just type .",
+                "type": "selectbox",
+                "options": ['inches', 'centimeters'],
+                "help": "Are you measuring dimensions in inches or centimeters? (Whole numbers without fractions or decimals will suffice)",
+            },
+            "viewer-height-inches": {
+                "type": "slider",
+                "min_value": 60,
+                "max_value": 75,
+                "label": "How tall is your average viewer in inches? (The average American height is 66 in.)",
+                "showIf": {"measurement-units": "inches"},
+            },
+            "viewer-height-cm": {
+                "type": "slider",
+                "min_value": 155,
+                "max_value": 180,
+                "label": "How tall is your average viewer in centimeters? (The average American height is 168 cm.)",
+                "showIf": {"measurement-units": "centimeters"},
             },
             "absentee-option": {
                 "type": "checkbox",
@@ -74,7 +88,7 @@ PHASES = {
         "user_prompt": [
             {
                 "condition": {},
-                "prompt": "Please generate mermaid.js code with a decision tree for voting. Here are the steps in order."
+                "prompt": "Please use \"{measurement-units}\" in all of your output for this prompt."
             },
             {
                 "condition": {},
