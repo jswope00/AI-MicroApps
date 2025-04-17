@@ -39,7 +39,7 @@ PHASES = {
                 "label": "How tall is your average viewer in inches? (The average American height is 66 in.)",
                 "showIf": {"measurement-units": "inches"},
             },
-            "viewer-height-cm": {
+            "viewer-height-centimeters": {
                 "type": "slider",
                 "min_value": 155,
                 "max_value": 180,
@@ -73,7 +73,7 @@ PHASES = {
                 "type": "selectbox",
                 "options": ['normal', 'reinforced'],
                 "label": "What type of wall are you hanging on?",
-                "help": "Most buildings have normal drywall, but some galleries are reinforced with plywood backing"
+                "help": "Most American rooms have normal drywall, but some galleries are reinforced with plywood backing"
             },
         },
         "user_prompt": [
@@ -82,9 +82,21 @@ PHASES = {
                 "prompt": "Please use \"{measurement-units}\" in all of your output for this prompt."
             },
             {
-                "condition": {},
-                "prompt": "- Start off by asking if the user wants to vote. If no, then tell them thank you and end the branch. If yes, then provide the following options:\n",
+                "condition": {"measurement-units": "inches"},
+                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * \"viewer-height-inches\".\n",
             },
+            {
+                "condition": {"measurement-units": "centimeters"},
+                "prompt": "- Start off by calculating the EYE_HEIGHT = .93 * \"viewer-height-centimeters\".\n",
+            },
+            {
+                "condition": {},
+                "prompt": "- Calculate the nail's height off the floor using the formula NAIL_HEIGHT = EYE_HEIGHT + (\"{picture_height}\"/2) - \"{drop-to-hardware}\"."
+            },
+
+
+
+									
             {
                 "condition": {"$or":[{"hometown-option": True},{"absentee-option": True}]},
                 "prompt": "- Ask if the user wants to vote on hometown issues. If yes, then ask if they have time to go home. If the student has time to go home, then this branch stops with 'Go home and vote. Check 'ballotpedia.org' for local voting information.' If the student does not have time, then end this branch with 'Request an absentee ballot'.\n",
