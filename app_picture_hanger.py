@@ -12,15 +12,19 @@ SHARED_ASSET = {
 }
 
 HTML_BUTTON = {
-    "button_text": "Make your own AI MicroApp",
+    "button_text": "Learn to make an AI MicroApp like this",
     "url": "https://www.youtube.com/watch?v=jqpEJ2995IA"    
 }
 
 SYSTEM_PROMPT = """Acting as an expert in curating displays of art in homes, galleries, and museums, you will generate concise instructions in plain language understandable by a lay person on how to hang a picture, specifically where to place a nail in accordance with the measurements of the wall and picture supplied in the prompt. Your calculations will depend on the following fields from the user:
 
-EYE_HEIGHT: This will be the height off the ground of the eye of a typical standing viewer.
+EYE_HEIGHT: This will be the height off the floor of the eye level of a typical standing viewer.
 
-PICTURE_HEIGHT: This will be 
+PICTURE_HEIGHT: This will be the vertical dimension of the picture.
+																DROP_TO_HARDWARE: This will be the distance between the top of the picture to the wire, cleat, or other hanging hardware attached to the back of the picture. In almost every case, the hardware will be screwed or adhered to the back of the picture so as to be invisible to the viewer; the viewer will not see the nail or wire sticking out above the picture frame.
+																AVAILABLE_WALL_WIDTH: This is the running length of wall space available to mount the picture; it is bounded by obstacles to the left and right such as wall corners, furniture, or other hangings.
+
+NAIL_HORIZONTAL_POSITION: This will be the distance from the left or right edge of the AVAILABLE_WALL_WIDTH to the placement of the nail. It is not the distance between the edge of the picture and the nail location.
 """
 
 PHASES = {
@@ -72,7 +76,7 @@ PHASES = {
                 "type": "selectbox",
                 "options": ['light (under 5 pounds)', 'medium (5-20 pounds)', 'heavy (over 20 pounds)'],
                 "label": "How heavy is the picture?",
-                "help": "Include the frame and glazing (glass or plastic}, if any"
+                "help": "Include the frame and glazing (glass or Plexi front}, if any"
             },
             "wall-type": {
                 "type": "selectbox",
@@ -89,7 +93,7 @@ PHASES = {
             {
                 "condition": {},
                 "prompt": """For future reference, note the following values entered by the user:
-                			PICTURE_HEIGHT: {picture-height}
+                PICTURE_HEIGHT: {picture-height}
 																			DROP_TO_HARDWARE: {drop-to-hardware}
 																			AVAILABLE_WALL_WIDTH: {available-wall-width}
                 """
