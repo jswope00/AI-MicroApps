@@ -97,6 +97,26 @@ PHASES = {
                 "condition": {},
                 "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = \"{available-wall-width}\"/2."
             },
+            {
+                "condition": {"$and":[{"picture-weight": "light"},{"wall-type": "normal"}]},
+                "prompt": "- Recommend a simple nail or adhesive hook.\n",
+            },
+            {
+                "condition": {"$and":[{"picture-weight": "medium"},{"wall-type": "normal"}]},
+                "prompt": "- Recommend a picture hook or wall anchor to compensate for the picture's weight.\n",
+            },
+            {
+                "condition": {"$and":[{"picture-weight": "heavy"},{"wall-type": "normal"}]},
+                "prompt": "- Recommend hammering one or more nails into one of the vertical wooden studs behind the wallboard, adding guidance that American homes are usually built with studs placed every 16 inches on-center.\n",
+            },
+            {
+                "condition": {"wall-type": "reinforced"},
+                "prompt": "- Explain that you can hang any reasonably sized picture by hammering one or more nails into the plywood behind the wallboard.\n",
+            },
+
+
+
+{
 
 
 
