@@ -95,7 +95,11 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = {available-wall-width}/2."
+                "prompt": "- Calculate the nail's distance from the nearest horizontal obstacle using the formula NAIL_HORIZONTAL_POSITION = {available-wall-width}/2. Explain how you arrived at these calculations."
+            },
+            {
+                "condition": {},
+                "prompt": "- Report the values you just calculated. What numbers did you get for NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement-units}?'\n",
             },
             {
                 "condition": {"$and":[{"picture-weight": "light"},{"wall-type": "normal"}]},
@@ -115,7 +119,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement-units}. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results. For example, instead of writing 'Hammer the nail NAIL_HEIGHT above the floor' you might write 'Hammer the nail 53 inches above the floor.'\n",
+                "prompt": "- Now tell the user exactly where to place the nail, specifically the NAIL_HEIGHT and NAIL_HORIZONTAL_POSITION in {measurement-units}. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results. For example, instead of writing 'Hammer the nail NAIL_HEIGHT above the floor' fill in the word NAIL_HEIGHT with the specific number you calculated.'\n",
             },
             {
                 "condition": {},
