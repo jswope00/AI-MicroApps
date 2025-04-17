@@ -45,6 +45,23 @@ PHASES = {
                 "label": "How tall is your average viewer in centimeters? (The average American height is 168 cm.)",
                 "showIf": {"measurement-units": "centimeters"},
             },
+            "picture-height": {
+                "type": "number_input",
+                "step": 1,
+                "label": "What's the height of your picture, including the frame?",
+            },
+            "drop-to-hardware": {
+                "type": "number_input",
+                "step": 1,
+                "label": "How far below the top of the picture is the hanger on the back?",
+                "help": "Measure down from the top to the place where the nail will go, whether a hook or a wire held taut, in the units you chose (inches or cm).",
+            },
+            "available_wall_width": {
+                "type": "number_input",
+                "step": 1,
+                "label": "How much horizontal wall space is available?",
+                "help": "Include the total span in the units you chose (inches or cm), eg between adjacent walls, nearby furniture, or pictures to the left and right.",
+            },
             "absentee-option": {
                 "type": "checkbox",
                 "label": """My students have enough time to order an absentee ballot.""",
