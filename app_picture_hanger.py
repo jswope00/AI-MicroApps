@@ -25,6 +25,8 @@ picture_height: This will be the vertical dimension of the picture.
 drop_to_hardware: This will be the distance between the top of the picture to the wire, cleat, or other hanging hardware attached to the back of the picture. In almost every case, the hardware will be screwed or adhered to the back of the picture so as to be invisible to the viewer; the viewer will not see the nail or wire sticking out above the picture frame.
 
 available_wall_width: This is the running length of wall space available to mount the picture; it is bounded by obstacles to the left and right such as wall corners, furniture, or other hangings.
+
+When asked to perform a calculation, please use Python to perform the calculation and follow the provided instructions EXACTLY.
 """
 
 PHASES = {
@@ -45,6 +47,7 @@ PHASES = {
                 "type": "slider",
                 "min_value": 60,
                 "max_value": 75,
+                "value": 66,
                 "label": "How tall is your average viewer in inches? (The average American height is 66 in.)",
                 "showIf": {"measurement_units": "inches"},
             },
@@ -52,6 +55,7 @@ PHASES = {
                 "type": "slider",
                 "min_value": 155,
                 "max_value": 180,
+                "value": 168,
                 "label": "How tall is your average viewer in centimeters? (The average American height is 168 cm.)",
                 "showIf": {"measurement_units": "centimeters"},
             },
@@ -92,7 +96,11 @@ PHASES = {
             },
 			{
                 "condition": {},
-                "prompt": "- Now tell the user to place the nail at a height of {( .93 * viewer_height_inches ) + ( picture_height/2 ) - drop_to_hardware} off the floor and a horizontal distance of {available_wall_width/2} in {measurement_units} from the left obstacle. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results.'\n",
+                "prompt": """
+Use Python to set [height] = ((.93 * {viewer_height_inches}) + ({picture_height}/2) - {drop_to_hardware})). Set [height] to EXACTLY the result of this calculation, with no further assumptions or calculations. Show me step by step reasoning for the calculation.
+Use Python to set [distance] = ({available_wall_width}/2)
+- Now tell the user to place the nail at a height of [height] off the floor and a horizontal distance of [distance] in {measurement_units} from the left obstacle. Do not tell them how to do the calculations; just do the calculations yourself and tell the user the results.'\n
+                """,
             },
             {
                 "condition": {"$and":[{"picture_weight": "light"},{"wall_type": "normal"}]},
@@ -112,7 +120,7 @@ PHASES = {
             },
             {
                 "condition": {},
-                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, with labeled arrows to indicate the appropriate dimensions. This schematic image should include a small nail icon or graphic positioned { .93 * viewer_height_centimeters + (picture_height/2) - drop_to_hardware } {dimension_units} off the floor and a distance of { {available_wall_width}/2 } {measurement_units} from the nearest left obstacle. The latter dimension is the distance from the nail to the nearest left obstacle; it is not the distance between the edge of the picture and the nail location. Your prompt should also draw a dashed rectangle corresponding to the picture frame, showing that the picture has a height of {picture_height} and another labeled arrow showing the picture has a hardware drop of {hardware_drop}. The lower end of the hardware drop should line up horizontally with the position of the nail. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
+                "prompt": "- After typing out the preceding information, think of a prompt that can be entered in ChatGPT to generate a diagram illustrating the measurements supplied by the user, with labeled arrows to indicate the appropriate dimensions. This schematic image should include a small nail icon or graphic positioned [height] {dimension_units} off the floor and a distance of [distance] {measurement_units} from the nearest left obstacle. The latter dimension is the distance from the nail to the nearest left obstacle; it is not the distance between the edge of the picture and the nail location. Your prompt should also draw a dashed rectangle corresponding to the picture frame, showing that the picture has a height of {picture_height} and another labeled arrow showing the picture has a hardware drop of {hardware_drop}. The lower end of the hardware drop should line up horizontally with the position of the nail. Your prompt should ask ChatGPT to draw this in the style of an architectural blueprint with white lines and text on a blue background. Your prompt should clarify that the diagram should be as easy to follow as possible, with no extraneous text or imagery. Finally, type a message to the user suggesting entering this prompt into ChatGPT.com to generate a useful diagram.\n",
             },
         ],
         "ai_response": True,
@@ -128,13 +136,8 @@ LLM_CONFIG_OVERRIDE = {"gpt-4o-mini": {
         "family": "openai",
         "model": "gpt-4o-mini",
         "max_tokens": 1000,
-        "temperature": 1.0,
+        "temperature": 0.5,
         "top_p": 1.0,
-        "frequency_penalty": 0,
-        "presence_penalty": 0,
-        "supports_image": False,
-        "price_input_token_1M": 0.15,
-        "price_output_token_1M": 0.60
     }
 }
 
