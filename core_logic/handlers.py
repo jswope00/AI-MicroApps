@@ -228,6 +228,7 @@ def rag_handler(context):
     """
     RAG Handler that processes the document, retrieves relevant information,
     and generates a response using the OpenAI language model.
+    Falls back to direct LLM response if RAG is not available.
 
     Args:
     - context: A dictionary containing the file path, user prompt, and LLM configuration.
@@ -239,27 +240,49 @@ def rag_handler(context):
     file_path = context.get("file_path", None)
     user_prompt = context.get("user_prompt", "")
 
-    if not file_path:
-        raise ValueError("File path is required for RAG-based generation.")
     if not user_prompt:
         raise ValueError("User prompt is required.")
 
-    # Step 2: Check and store metadata and embeddings if not already present
-    rag_pipeline.check_and_store_metadata_and_embeddings(file_path)
+    # If no file path is provided, fall back to direct LLM response
+    if not file_path:
+        print("No file path provided for RAG. Falling back to direct LLM response.")
+        try:
+            rag_response, cost = rag_pipeline._fallback_llm_response(
+                question=user_prompt,
+                template_text=str(context["phase_instructions"]) + " User answer is " + user_prompt
+            )
+            context["TOTAL_PRICE"] = context.get("TOTAL_PRICE", 0) + (cost if cost else 0)
+            return rag_response
+        except Exception as e:
+            return f"Error during fallback processing: {e}"
 
-    # Step 4: Retrieve relevant documents based on the user's query and generate a response
+    # Step 2: Check and store metadata and embeddings if not already present
+    metadata_result = rag_pipeline.check_and_store_metadata_and_embeddings(file_path)
+    print(f"Metadata check result: {metadata_result}")
+
+    # Step 3: Retrieve relevant documents based on the user's query and generate a response
     try:
         # Call the retrieval and response generation pipeline
         rag_response, cost = rag_pipeline.retrieve_and_generate_response(
-            question= user_prompt,
-            template_text= str(context["phase_instructions"])+" User answer is "+ user_prompt
+            question=user_prompt,
+            template_text=str(context["phase_instructions"]) + " User answer is " + user_prompt
         )
-        print(rag_response,cost)
-        # Step 5: Update the context with the cost (if applicable)
+        print(f"RAG response: {rag_response}, cost: {cost}")
+        # Step 4: Update the context with the cost (if applicable)
         context["TOTAL_PRICE"] = context.get("TOTAL_PRICE", 0) + (cost if cost else 0)
         return rag_response
     except Exception as e:
-        return f"Error during RAG processing: {e}"
+        print(f"RAG processing failed: {e}. Attempting fallback.")
+        # Try fallback if RAG fails
+        try:
+            rag_response, cost = rag_pipeline._fallback_llm_response(
+                question=user_prompt,
+                template_text=str(context["phase_instructions"]) + " User answer is " + user_prompt
+            )
+            context["TOTAL_PRICE"] = context.get("TOTAL_PRICE", 0) + (cost if cost else 0)
+            return rag_response
+        except Exception as fallback_e:
+            return f"Error during RAG and fallback processing: {e} | {fallback_e}"
 
 
 # Mapping of model families to handler functions
